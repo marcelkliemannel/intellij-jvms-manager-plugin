@@ -1,1 +1,1 @@
-# intellij-jps-plugin
+# IntelliJ Java Processes Plugin
