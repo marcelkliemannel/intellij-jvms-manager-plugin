@@ -1,0 +1,19 @@
+<idea-plugin>
+    <id>dev.turingcomplete.intellij-jps-plugin</id>
+    <name>Java Processes</name>
+    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+
+    <description><![CDATA[
+    Enter short description for your plugin here.<br>
+    <em>most HTML tags may be used</em>
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Java Processes" factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory"
+                    anchor="bottom" canCloseContents="false" secondary="false" />
+    </extensions>
+</idea-plugin>

@@ -1,9 +1,11 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   java
   kotlin("jvm") version "1.5.10"
-  id("org.jetbrains.intellij") version "1.5.3"
+  id("org.jetbrains.intellij") version "1.6.0"
   id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -11,6 +13,7 @@ group = properties("pluginGroup")
 version = properties("pluginVersion")
 
 repositories {
+  mavenLocal()
   mavenCentral()
 }
 
@@ -49,5 +52,12 @@ tasks {
 
   runPluginVerifier {
     ideVersions.set(properties("pluginVerifierIdeVersions").split(",").map(String::trim).filter(String::isNotEmpty))
+  }
+
+  withType<KotlinCompile> {
+    kotlinOptions {
+      freeCompilerArgs = listOf("-Xjsr305=strict")
+      jvmTarget = "11"
+    }
   }
 }
