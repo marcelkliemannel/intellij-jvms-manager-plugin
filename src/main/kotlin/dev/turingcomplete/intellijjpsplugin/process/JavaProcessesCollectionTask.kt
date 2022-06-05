@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.jps
+package dev.turingcomplete.intellijjpsplugin.process
 
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task

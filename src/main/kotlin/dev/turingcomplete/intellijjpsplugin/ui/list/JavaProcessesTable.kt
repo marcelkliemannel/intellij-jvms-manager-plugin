@@ -12,10 +12,10 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
-import dev.turingcomplete.intellijjpsplugin.jps.JavaProcessNode
-import dev.turingcomplete.intellijjpsplugin.jps.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.jps.action.ForciblyTerminateProcessAction
-import dev.turingcomplete.intellijjpsplugin.jps.action.GracefullyTerminateProcessAction
+import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -26,6 +26,7 @@ class JavaProcessesTable(val recollectProcesses: () -> Unit)
 
   companion object {
     val SELECTED_PROCESSES: DataKey<List<ProcessNode>> = DataKey.create("JavaProcessesPlugin.SelectedProcesses")
+    val SELECTED_PROCESS: DataKey<ProcessNode> = DataKey.create("JavaProcessesPlugin.SelectedProcess")
 
     private fun createProcessesTableColumns(): Array<ColumnInfo<Any, out Any>> {
       return arrayOf(TreeColumnInfo("PID"),
@@ -76,19 +77,19 @@ class JavaProcessesTable(val recollectProcesses: () -> Unit)
   }
 
   override fun getData(dataId: String): Any? {
-    if (SELECTED_PROCESSES.`is`(dataId)) {
-      return TreeUtil.collectSelectedPaths(this.tree).map { it.lastPathComponent }.filterIsInstance<ProcessNode>()
+    return when {
+      SELECTED_PROCESSES.`is`(dataId) -> TreeUtil.collectSelectedPaths(this.tree).map { it.lastPathComponent }.filterIsInstance<ProcessNode>()
+      SELECTED_PROCESS.`is`(dataId) -> TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent
+      else -> null
     }
-
-    return null
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
-      add(GracefullyTerminateProcessAction().onFinished { recollectProcesses() })
-      add(ForciblyTerminateProcessAction().onFinished { recollectProcesses() })
+      add(GracefullyTerminateProcessesAction().onFinished { recollectProcesses() })
+      add(ForciblyTerminateProcessesAction().onFinished { recollectProcesses() })
     }
   }
 

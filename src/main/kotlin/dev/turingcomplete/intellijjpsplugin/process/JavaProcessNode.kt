@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.jps
+package dev.turingcomplete.intellijjpsplugin.process
 
 import com.sun.tools.attach.VirtualMachineDescriptor
 import oshi.software.os.OSProcess

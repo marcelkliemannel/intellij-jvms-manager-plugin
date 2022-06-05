@@ -32,7 +32,8 @@ intellij {
   type.set(properties("platformType"))
   downloadSources.set(properties("platformDownloadSources").toBoolean())
   updateSinceUntilBuild.set(true)
-  plugins.set(properties("platformPlugins").split(",").map(String::trim).filter(String::isNotEmpty))
+  plugins.set(listOf("com.intellij.java"))
+ // plugins.set(properties("platformPlugins").split(",").map(String::trim).filter(String::isNotEmpty))
 }
 
 changelog {

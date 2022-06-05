@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.jps.action
+package dev.turingcomplete.intellijjpsplugin.process.action
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction
@@ -12,7 +12,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
-import dev.turingcomplete.intellijjpsplugin.jps.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import javax.swing.Icon
 
 abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val processNodesDataKey: DataKey<List<ProcessNode>>)
@@ -40,7 +40,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
 
   final override fun actionPerformed(e: AnActionEvent) {
     TerminateProcessesTask(e.project, createTitle(e.dataContext),
-                           gradleProcessNodes(e.dataContext),
+                           getProcessNodes(e.dataContext),
                            { processNode, progressIndicator -> terminate(processNode, progressIndicator) },
                            { processNode, error -> createErrorMessage(processNode, error) },
                            onFinished)
@@ -55,7 +55,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
 
   abstract fun icon(): Icon
 
-  protected fun gradleProcessNodes(dataContext: DataContext): List<ProcessNode> {
+  protected fun getProcessNodes(dataContext: DataContext): List<ProcessNode> {
     return processNodesDataKey.getData(dataContext)
            ?: throw IllegalStateException("Data context is missing required data key '${processNodesDataKey.name}'.")
   }

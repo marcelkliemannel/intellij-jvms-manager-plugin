@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.jps
+package dev.turingcomplete.intellijjpsplugin.process
 
 import oshi.software.os.OSProcess
 import javax.swing.tree.DefaultMutableTreeNode

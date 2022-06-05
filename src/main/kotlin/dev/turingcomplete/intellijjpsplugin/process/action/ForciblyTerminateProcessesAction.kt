@@ -1,19 +1,19 @@
-package dev.turingcomplete.intellijjpsplugin.jps.action
+package dev.turingcomplete.intellijjpsplugin.process.action
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
-import dev.turingcomplete.intellijjpsplugin.jps.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.Icon
 
-class ForciblyTerminateProcessAction
-  : TerminateProcessesAction<ForciblyTerminateProcessAction>(JavaProcessesTable.SELECTED_PROCESSES) {
+class ForciblyTerminateProcessesAction
+  : TerminateProcessesAction<ForciblyTerminateProcessesAction>(JavaProcessesTable.SELECTED_PROCESSES) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-    private val LOG = Logger.getInstance(GracefullyTerminateProcessAction::class.java)
+    private val LOG = Logger.getInstance(GracefullyTerminateProcessesAction::class.java)
   }
 
   // -- Variables --------------------------------------------------------------------------------------------------- //
@@ -27,7 +27,7 @@ class ForciblyTerminateProcessAction
   }
 
   override fun createTitle(dataContext: DataContext): String {
-    val numOfProcesses = gradleProcessNodes(dataContext).size
+    val numOfProcesses = getProcessNodes(dataContext).size
     return if (numOfProcesses == 1) "Forcibly Terminate Process" else "Forcibly Terminate $numOfProcesses Processes"
   }
 

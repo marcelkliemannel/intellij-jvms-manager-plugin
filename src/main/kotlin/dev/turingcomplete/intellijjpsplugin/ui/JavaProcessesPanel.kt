@@ -12,8 +12,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.ScrollPaneFactory
-import dev.turingcomplete.intellijjpsplugin.jps.JavaProcessNode
-import dev.turingcomplete.intellijjpsplugin.jps.JavaProcessesCollectionTask
+import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.JavaProcessesCollectionTask
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent
 import javax.swing.JPanel
