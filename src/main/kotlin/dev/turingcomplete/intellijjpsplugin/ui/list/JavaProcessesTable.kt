@@ -1,7 +1,6 @@
 package dev.turingcomplete.intellijjpsplugin.ui.list
 
 import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.util.text.StringUtil
@@ -16,18 +15,17 @@ import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESS
+import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESSES
 import dev.turingcomplete.intellijjpsplugin.ui.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class JavaProcessesTable(val recollectProcesses: () -> Unit)
+class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessDetails: (ProcessNode) -> Unit)
   : TreeTable(ListTreeTableModelOnColumns(DefaultMutableTreeNode(), createProcessesTableColumns())), DataProvider {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-    val SELECTED_PROCESSES: DataKey<List<ProcessNode>> = DataKey.create("JavaProcessesPlugin.SelectedProcesses")
-    val SELECTED_PROCESS: DataKey<ProcessNode> = DataKey.create("JavaProcessesPlugin.SelectedProcess")
-
     private fun createProcessesTableColumns(): Array<ColumnInfo<Any, out Any>> {
       return arrayOf(TreeColumnInfo("PID"),
                      ProcessNodeColumnInfo("Name") { it.displayName() },
@@ -48,6 +46,14 @@ class JavaProcessesTable(val recollectProcesses: () -> Unit)
     addMouseListener(UiUtils.Table.createContextMenuMouseListener(this@JavaProcessesTable::class.qualifiedName!!) {
       createContextMenuActions
     })
+
+    selectionModel.addListSelectionListener {
+      if (it.valueIsAdjusting) {
+        return@addListSelectionListener
+      }
+
+      TreeUtil.getSelectedPathIfOne(tree)?.let { slectedPath -> showProcessDetails(slectedPath.lastPathComponent as ProcessNode) }
+    }
 
     columnModel.getColumn(0).preferredWidth = 40
     columnModel.getColumn(1).preferredWidth = 400
@@ -88,8 +94,8 @@ class JavaProcessesTable(val recollectProcesses: () -> Unit)
 
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
-      add(GracefullyTerminateProcessesAction().onFinished { recollectProcesses() })
-      add(ForciblyTerminateProcessesAction().onFinished { recollectProcesses() })
+      add(GracefullyTerminateProcessesAction().onFinished { collectProcesses() })
+      add(ForciblyTerminateProcessesAction().onFinished { collectProcesses() })
     }
   }
 
@@ -111,9 +117,9 @@ class JavaProcessesTable(val recollectProcesses: () -> Unit)
         return
       }
 
-      icon = value.processType?.icon
+      icon = value.processType.icon
       append(value.process.processID.toString())
-      toolTipText = value.processType?.description
+      toolTipText = value.processType.description
 
       val isJavaProcess = value is JavaProcessNode
       if (!isJavaProcess) {

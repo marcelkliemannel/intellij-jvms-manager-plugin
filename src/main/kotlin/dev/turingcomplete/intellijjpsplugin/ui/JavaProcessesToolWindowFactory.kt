@@ -11,7 +11,7 @@ class JavaProcessesToolWindowFactory : ToolWindowFactory, DumbAware, Disposable 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-    const val TOOLBAR_PLACE_PREFIX = "dev.turingcomplete.intellijjpsplugin.toolbar"
+    const val PLACE_PREFIX = "dev.turingcomplete.intellijjpsplugin.place"
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //

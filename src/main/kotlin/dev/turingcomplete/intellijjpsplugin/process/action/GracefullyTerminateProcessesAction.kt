@@ -5,11 +5,10 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
+import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESSES
 import javax.swing.Icon
 
-class GracefullyTerminateProcessesAction
-  : TerminateProcessesAction<GracefullyTerminateProcessesAction>(JavaProcessesTable.SELECTED_PROCESSES) {
+class GracefullyTerminateProcessesAction : TerminateProcessesAction<GracefullyTerminateProcessesAction>(SELECTED_PROCESSES) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
@@ -23,8 +22,8 @@ class GracefullyTerminateProcessesAction
   override fun icon(): Icon = AllIcons.Actions.Suspend
 
   override fun createTitle(dataContext: DataContext): String {
-    val numOfDaemons = getProcessNodes(dataContext).size
-    return if (numOfDaemons == 1) "Gracefully Terminate Daemon" else "Gracefully Terminate $numOfDaemons Processes"
+    val numOfProcesses = getProcessNodes(dataContext).size
+    return if (numOfProcesses == 1) "Gracefully Terminate Process" else "Gracefully Terminate $numOfProcesses Processes"
   }
 
   override fun createErrorMessage(processNode: ProcessNode, error: Throwable): String {

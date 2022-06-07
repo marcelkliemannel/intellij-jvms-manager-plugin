@@ -1,11 +1,11 @@
 package dev.turingcomplete.intellijjpsplugin.process
 
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.first
 import com.sun.tools.attach.VirtualMachine
-import oshi.SystemInfo
 import oshi.software.os.OSProcess
 import oshi.software.os.OperatingSystem
 import oshi.software.os.OperatingSystem.ProcessSorting
@@ -28,15 +28,16 @@ import oshi.software.os.OperatingSystem.ProcessSorting
  * at least until Oshi version 6, is that each of these methods first retrieves
  * all processes and then filters out only the desired ones.)
  */
-class JavaProcessesCollectionTask(project: Project?,
+class CollectJavaProcessNodesTask(project: Project?,
                                   private val onSuccess: (List<JavaProcessNode>) -> Unit,
-                                  private val onFinished: () -> Unit)
-  : Task.ConditionalModal(project, "Collecting Java processes", true, ALWAYS_BACKGROUND) {
+                                  private val onFinished: () -> Unit,
+                                  private val onThrowable: (Throwable) -> Unit)
+  : Task.ConditionalModal(project, "Collecting Java processes information", true, ALWAYS_BACKGROUND) {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-    private val OPERATION_SYSTEM: OperatingSystem by lazy { SystemInfo().operatingSystem }
+    private val LOG = Logger.getInstance(CollectJavaProcessNodesTask::class.java)
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
@@ -46,11 +47,13 @@ class JavaProcessesCollectionTask(project: Project?,
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  override fun run(indicator: ProgressIndicator) {
+  override fun run(progressIndicator: ProgressIndicator) {
+    val startMillis = System.currentTimeMillis()
+
     topLevelJavaProcessNodes.clear()
 
     // Collect all processes current running on the machine.
-    val allProcesses = OPERATION_SYSTEM.getProcesses(null, ProcessSorting.NO_SORTING, 0)
+    val allProcesses = OshiUtils.OPERATION_SYSTEM.getProcesses(null, ProcessSorting.NO_SORTING, 0)
             .associateBy { it.processID }
 
     // Collect all known Java processes.
@@ -60,6 +63,7 @@ class JavaProcessesCollectionTask(project: Project?,
     // These are either children of a real top-level Java process or are
     // children of a non-Java process. In the latter case, they will be later
     // handled as if they are top-level Java processes.
+    progressIndicator.checkCanceled()
     val remainingJavaProcessNodesToAssociate = mutableMapOf<Int, JavaProcessNode>()
     VirtualMachine.list().forEach { vmDescriptor ->
       val pid = vmDescriptor.id().toIntOrNull() ?: return@forEach
@@ -76,6 +80,7 @@ class JavaProcessesCollectionTask(project: Project?,
     }
 
     // Collect all children of the real top-level Java processes.
+    progressIndicator.checkCanceled()
     topLevelJavaProcessNodes.forEach { javaProcessNode ->
       collectChildren(allProcesses, javaProcessNode, remainingJavaProcessNodesToAssociate)
     }
@@ -84,13 +89,17 @@ class JavaProcessesCollectionTask(project: Project?,
     // not a top-level process but there are also not a child process of a
     // top-level Java process. We add these as a top level process to the result
     // so that we have a listing of all Java processes.
+    progressIndicator.checkCanceled()
     while (remainingJavaProcessNodesToAssociate.isNotEmpty()) {
-      val javaProcessNode = remainingJavaProcessNodesToAssociate.first().value
+      val (pid, javaProcessNode) = remainingJavaProcessNodesToAssociate.first()
+      remainingJavaProcessNodesToAssociate.remove(pid)
       collectChildren(allProcesses, javaProcessNode, remainingJavaProcessNodesToAssociate)
       topLevelJavaProcessNodes.add(javaProcessNode)
     }
 
     topLevelJavaProcessNodes.sortWith { a, b -> a.process.processID.compareTo(b.process.processID) }
+
+    LOG.debug("Took " + (System.currentTimeMillis() - startMillis) + " ms to collect all Java processes.")
   }
 
   override fun onSuccess() {
@@ -101,12 +110,15 @@ class JavaProcessesCollectionTask(project: Project?,
     onFinished.invoke()
   }
 
+  override fun onThrowable(error: Throwable) {
+    onThrowable.invoke(error)
+  }
+
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
   private fun collectChildren(processes: Map<Int, OSProcess>, parent: ProcessNode, javaProcessesToAssociate: MutableMap<Int, JavaProcessNode>) {
-    val parentProcessID = parent.process.processID
-    processes.filter { it.value.parentProcessID == parentProcessID }.map { osProcess ->
-      val childProcessNode = javaProcessesToAssociate.remove(osProcess.value.processID) ?: ProcessNode(osProcess.value)
+    processes.filter { it.value.parentProcessID == parent.process.processID }.map { childProcess ->
+      val childProcessNode = javaProcessesToAssociate.remove(childProcess.value.processID) ?: ProcessNode(childProcess.value)
       collectChildren(processes, childProcessNode, javaProcessesToAssociate)
       childProcessNode
     }.sortedBy { childProcessNode -> childProcessNode.process.processID }.forEach { parent.add(it) }
