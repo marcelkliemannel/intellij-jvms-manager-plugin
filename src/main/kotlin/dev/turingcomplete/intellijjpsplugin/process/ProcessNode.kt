@@ -1,7 +1,6 @@
 package dev.turingcomplete.intellijjpsplugin.process
 
 import oshi.PlatformEnum
-import oshi.SystemInfo
 import oshi.software.os.OSProcess
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -48,7 +47,7 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
   }
 
   fun priorityDescription(): String? {
-    return when (SystemInfo.getCurrentPlatform()) {
+    return when (OshiUtils.CURRENT_PLATFORM) {
       PlatformEnum.MACOS -> "Priority on macOS ranges from 0 (lowest) to 127 (highest).\nThe default priority is 31."
       PlatformEnum.LINUX -> "Priority on Linux ranges from -20 (highest) to 19/20 (lowest).\nThe default priority is 0."
       PlatformEnum.WINDOWS -> "Priority on Windows ranges from 0 (lowest) to 32 (highest)."

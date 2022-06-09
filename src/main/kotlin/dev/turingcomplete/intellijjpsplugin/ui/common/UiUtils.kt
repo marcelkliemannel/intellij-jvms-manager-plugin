@@ -1,9 +1,12 @@
-package dev.turingcomplete.intellijjpsplugin.ui
+package dev.turingcomplete.intellijjpsplugin.ui.common
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.ToggleAction
 import com.intellij.openapi.ide.CopyPasteManager
+import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.ui.ClickListener
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory
@@ -21,6 +24,7 @@ import java.awt.datatransfer.StringSelection
 import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.UIManager
@@ -54,6 +58,16 @@ internal object UiUtils {
   fun createLink(title: String, url: String): HyperlinkLabel {
     return HyperlinkLabel(title).apply {
       setHyperlinkTarget(url)
+    }
+  }
+
+  fun createSimpleToggleAction(text: String, icon: Icon?, isSelected: () -> Boolean, setSelected: (Boolean) -> Unit): ToggleAction {
+
+    return object : DumbAwareToggleAction(text, "", icon) {
+
+      override fun isSelected(e: AnActionEvent): Boolean = isSelected.invoke()
+
+      override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected.invoke(state)
     }
   }
 
@@ -97,21 +111,43 @@ internal object UiUtils {
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   object Panel {
-    class TextAreaPanel(value: String) : BorderLayoutPanel() {
+    class TextAreaPanel(private val content: String, softWrap: Boolean = true, private var breakCommands: Boolean = false)
+      : BorderLayoutPanel() {
+
+      companion object {
+        // Matches a white space and a dash if they are not in quotes: https://stackoverflow.com/a/28194133/7059880
+        private val COMMAND_START_REGEX = Regex("\\s-(?=(?:\"[^\"]*\"|[^\"])*\$)")
+      }
+
+      private val textArea = JBTextArea(content).apply {
+        isEditable = false
+      }
 
       init {
         minimumSize = Dimension(150, 50)
         preferredSize = Dimension(550, 300)
 
-        val textArea = JBTextArea(value).apply {
-          isEditable = false
-        }
+        setSoftWrap(softWrap)
+        setBreakCommands(breakCommands)
 
         addToCenter(ScrollPaneFactory.createScrollPane(textArea).apply {
           minimumSize = this@TextAreaPanel.minimumSize
           preferredSize = this@TextAreaPanel.preferredSize
         })
       }
+
+      fun setBreakCommands(breakCommands: Boolean) {
+        this.breakCommands = breakCommands
+        textArea.text = if (breakCommands) content.replace(COMMAND_START_REGEX, " \\\\ ${System.lineSeparator()}  -") else content
+      }
+
+      fun isBreakCommands(): Boolean = breakCommands
+
+      fun setSoftWrap(softWrap: Boolean) {
+        textArea.lineWrap = softWrap
+      }
+
+      fun isSoftWrap() = textArea.lineWrap
     }
   }
 }

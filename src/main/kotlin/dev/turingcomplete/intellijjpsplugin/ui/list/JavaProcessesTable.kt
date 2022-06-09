@@ -17,7 +17,7 @@ import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProc
 import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESS
 import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESSES
-import dev.turingcomplete.intellijjpsplugin.ui.UiUtils
+import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
