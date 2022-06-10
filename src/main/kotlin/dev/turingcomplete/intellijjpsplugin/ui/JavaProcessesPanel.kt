@@ -135,28 +135,34 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
 
   private fun showProcessNodeDetails(processNode: ProcessNode) {
     contentSplitter.secondComponent = when (processNode) {
-      is JavaProcessNode -> {
-        if (javaProcessDetailPanel == null) {
-          javaProcessDetailPanel = JavaProcessDetailPanel(processNode, showParentProcessNodeDetails(processNode))
-        }
-        else {
-          javaProcessDetailPanel!!.showProcessNode(processNode)
-        }
-        javaProcessDetailPanel
-      }
-      else -> {
-        if (processDetailPanel == null) {
-          processDetailPanel = ProcessDetailPanel(processNode, showParentProcessNodeDetails(processNode))
-        }
-        else {
-          processDetailPanel!!.showProcessNode(processNode)
-        }
-        processDetailPanel
-      }
+      is JavaProcessNode -> setJavaProcessDetailPanel(processNode)
+      else -> setProcessDetailPanel(processNode)
     }
   }
 
-  private fun showParentProcessNodeDetails(processNode: ProcessNode): () -> Unit = {
+  private fun setJavaProcessDetailPanel(processNode: JavaProcessNode): JavaProcessDetailPanel {
+    if (javaProcessDetailPanel == null) {
+      javaProcessDetailPanel = JavaProcessDetailPanel(processNode, showParentProcessNodeDetails())
+    }
+    else {
+      javaProcessDetailPanel!!.showProcessNode(processNode)
+    }
+
+    return javaProcessDetailPanel!!
+  }
+
+  private fun setProcessDetailPanel(processNode: ProcessNode): ProcessDetailPanel<ProcessNode> {
+    if (processDetailPanel == null) {
+      processDetailPanel = ProcessDetailPanel(processNode, showParentProcessNodeDetails())
+    }
+    else {
+      processDetailPanel!!.showProcessNode(processNode)
+    }
+
+    return processDetailPanel!!
+  }
+
+  private fun showParentProcessNodeDetails(): (ProcessNode) -> Unit = { processNode ->
     val parentProcessNode = processNode.parent
     if (parentProcessNode is ProcessNode) {
       showProcessNodeDetails(parentProcessNode)

@@ -23,7 +23,7 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showParentProcessDetails: () -> Unit)
+open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showParentProcessDetails: (ProcessNode) -> Unit)
   : BorderLayoutPanel(), DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -63,11 +63,11 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class GeneralPanel(var processNode: ProcessNode, val showParentProcessDetails: () -> Unit) : JPanel(GridBagLayout()) {
+  private class GeneralPanel(var processNode: ProcessNode, val showParentProcessDetails: (ProcessNode) -> Unit) : JPanel(GridBagLayout()) {
 
     val processDescriptionLabel = JBLabel().copyable()
     val pidLabel = JBLabel().copyable()
-    var parentProcessComponent: JComponent = createParentProcessComponent(processNode)
+    var parentProcessWrapper: BorderLayoutPanel = BorderLayoutPanel()
     val vszLabel = JBLabel().copyable()
     val userLabel = JBLabel().copyable()
     val groupLabel = JBLabel().copyable()
@@ -93,7 +93,7 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       add(pidLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(parentProcessComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(parentProcessWrapper, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
@@ -168,7 +168,8 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       processDescriptionLabel.icon = processNode.processType.icon
 
       pidLabel.text = processNode.process.processID.toString()
-      parentProcessComponent = createParentProcessComponent(processNode)
+      parentProcessWrapper.removeAll()
+      parentProcessWrapper.addToCenter(createParentProcessComponent(processNode))
 
       stateLabel.text = process.state.name
       stateLabel.toolTipText = processNode.stateDescription()
@@ -207,7 +208,7 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       }
 
       return if (hyperlinkText != null) {
-        HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessDetails() } }
+        HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessDetails(processNode) } }
       }
       else {
         JBLabel("Unknown")
