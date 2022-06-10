@@ -21,7 +21,7 @@ import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessDetails: (ProcessNode) -> Unit)
+class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDetails: (ProcessNode) -> Unit)
   : TreeTable(ListTreeTableModelOnColumns(DefaultMutableTreeNode(), createProcessesTableColumns())), DataProvider {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
@@ -52,7 +52,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessDetail
         return@addListSelectionListener
       }
 
-      TreeUtil.getSelectedPathIfOne(tree)?.let { slectedPath -> showProcessDetails(slectedPath.lastPathComponent as ProcessNode) }
+      TreeUtil.getSelectedPathIfOne(tree)?.let { slectedPath -> showProcessNodeDetails(slectedPath.lastPathComponent as ProcessNode) }
     }
 
     columnModel.getColumn(0).preferredWidth = 40

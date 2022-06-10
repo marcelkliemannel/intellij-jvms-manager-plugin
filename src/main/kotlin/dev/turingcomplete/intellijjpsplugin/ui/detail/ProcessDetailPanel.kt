@@ -4,7 +4,6 @@ import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.JBColor
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTabbedPane
@@ -25,31 +24,24 @@ import javax.swing.JPanel
 import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
-class ProcessDetailPanel(private val processNode: ProcessNode, val showParentProcessDetails: () -> Unit)
+open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showParentProcessDetails: () -> Unit)
   : BorderLayoutPanel(), DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
-
-  companion object {
-    val NO_PROCESS_SELECTED = BorderLayoutPanel().apply {
-      background = JBColor.background()
-      foreground = UIUtil.getLabelDisabledForeground()
-
-      addToCenter(JBLabel("No process selected", SwingConstants.CENTER))
-    }
-  }
-
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private val tabs = JBTabbedPane()
+  private val generalPanel = GeneralPanel(processNode, showParentProcessDetails)
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
 
   init {
+    showProcessNode(processNode)
+
     addToCenter(tabs.apply {
       tabComponentInsets = emptyInsets()
 
-      addTab("General", createScrollPane(createGeneralPanel(), true))
+      addTab("General", createScrollPane(generalPanel, true))
     })
   }
 
@@ -63,24 +55,44 @@ class ProcessDetailPanel(private val processNode: ProcessNode, val showParentPro
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  fun showProcessNode(processNode: T) {
+    this.processNode = processNode
 
-  private fun createGeneralPanel(): JComponent {
-    return JPanel(GridBagLayout()).apply {
+    generalPanel.showProcessNode(processNode)
+  }
+
+  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class GeneralPanel(processNode: ProcessNode, val showParentProcessDetails: () -> Unit) : JPanel(GridBagLayout()) {
+
+    val vszLabel = JBLabel().copyable()
+    val userLabel = JBLabel().copyable()
+    val groupLabel = JBLabel().copyable()
+    val openFilesLabel = JBLabel().copyable()
+    val readLabel = JBLabel().copyable()
+    val writtenLabel = JBLabel().copyable()
+    val stateLabel = JBLabel().copyable()
+    val priorityLabel = JBLabel().copyable()
+    val startTimeLabel = JBLabel().copyable()
+    val upTimeLabel = JBLabel().copyable()
+    val userTimeLabel = JBLabel().copyable()
+    val kernelTimeLabel = JBLabel().copyable()
+    val rssLabel = JBLabel().copyable()
+
+    init {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 
+      val bag = UiUtils.createDefaultGridBag()
       val process = processNode.process
 
-      val bag = UiUtils.createDefaultGridBag()
-
-      add(JBLabel("<html><b>${processNode.processDescription()}</b></html>", processNode.processType.icon, SwingConstants.LEFT).copyable(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
-
+      add(JBLabel("<html><b>${processNode.processDescription()}</b></html>", processNode.processType.icon, SwingConstants.LEFT), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
 
       add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(JBLabel(process.processID.toString()), bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(JBLabel(process.processID.toString()).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(createParentProcessComponent(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(createParentProcessComponent(processNode), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
@@ -99,70 +111,98 @@ class ProcessDetailPanel(private val processNode: ProcessNode, val showParentPro
 
 
       add(JBLabel("In state:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(JBLabel(process.state.name).apply { toolTipText = processNode.stateDescription() }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(stateLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Priority:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(process.priority.toString().apply { toolTipText = processNode.priorityDescription() }), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(priorityLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
 
       add(JBLabel("Start time:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(JBLabel(DateFormatUtil.formatDateTime(process.startTime)).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(startTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Up time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(StringUtil.formatDuration(process.upTime)).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(upTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("User time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(StringUtil.formatDuration(process.userTime)).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(userTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Kernel time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(StringUtil.formatDuration(process.kernelTime)).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(kernelTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+
+      add(JBLabel("RSS memory:").apply {
+        toolTipText = "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."
+      }, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(rssLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+      add(JBLabel("VSZ memory:").apply {
+        toolTipText = "The virtual memory size (VSZ) shows all memory that the process can access, including memory that is swapped out and memory that is from shared libraries."
+      }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(vszLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
 
       add(JBLabel("User:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(JBLabel("${process.user} (${process.userID})").copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(userLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Group:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel("${process.group} (${process.groupID})").copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(groupLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
 
       add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      val openFiles = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
-      add(JBLabel(openFiles), bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(openFilesLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
 
       add(JBLabel("Read:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(FileUtils.byteCountToDisplaySize(process.bytesRead)), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(readLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(JBLabel(FileUtils.byteCountToDisplaySize(process.bytesWritten)), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+    }
 
-      // Fill rest of panel
-      add(JPanel(), bag.nextLine().next().fillCell())
+    fun showProcessNode(processNode: ProcessNode) {
+      val process = processNode.process
+
+      stateLabel.text = process.state.name
+      stateLabel.toolTipText = processNode.stateDescription()
+      priorityLabel.text = process.priority.toString()
+      priorityLabel.toolTipText = processNode.priorityDescription()
+
+      startTimeLabel.text = DateFormatUtil.formatDateTime(process.startTime)
+      upTimeLabel.text = StringUtil.formatDuration(process.upTime)
+      userTimeLabel.text = StringUtil.formatDuration(process.userTime)
+      kernelTimeLabel.text = StringUtil.formatDuration(process.kernelTime)
+
+      rssLabel.text = StringUtil.formatFileSize(process.residentSetSize)
+      vszLabel.text = StringUtil.formatFileSize(process.virtualSize)
+
+      userLabel.text = "${process.user} (${process.userID})"
+      groupLabel.text = "${process.group} (${process.groupID})"
+
+      openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
+      readLabel.text = FileUtils.byteCountToDisplaySize(process.bytesRead)
+      writtenLabel.text = FileUtils.byteCountToDisplaySize(process.bytesWritten)
+    }
+
+    private fun createParentProcessComponent(processNode: ProcessNode): JComponent {
+      val parentProcessId = processNode.process.parentProcessID
+
+      // Oshi can't resolve macOS's `launchd` process
+      if (parentProcessId == 1 && PlatformEnum.MACOS == OshiUtils.CURRENT_PLATFORM) {
+        return JBLabel("1 | launchd")
+      }
+
+      val parentProcessNode = processNode.parent
+      val hyperlinkText: String? = when {
+        parentProcessNode is ProcessNode -> "$parentProcessId | ${parentProcessNode.processDescription()}"
+        parentProcessId > 0 -> parentProcessId.toString()
+        else -> null
+      }
+
+      return if (hyperlinkText != null) {
+        HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessDetails() } }
+      }
+      else {
+        JBLabel("Unknown")
+      }
     }
   }
-
-  private fun createParentProcessComponent(): JComponent {
-    val parentProcessId = processNode.process.parentProcessID
-
-    // Edge cases
-
-    // Oshi can't "find" the launchd process
-    if (parentProcessId == 1 && PlatformEnum.MACOS == OshiUtils.CURRENT_PLATFORM) {
-      return JBLabel("1 | launchd")
-    }
-
-    val parentProcessNode = processNode.parent
-    val hyperlinkText: String? = when {
-      parentProcessNode is ProcessNode -> "$parentProcessId | ${parentProcessNode.processDescription()}"
-      parentProcessId > 0 -> parentProcessId.toString()
-      else -> null
-    }
-
-    return if (hyperlinkText != null) {
-      HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessDetails() } }
-    }
-    else {
-      JBLabel("Unknown")
-    }
-  }
-
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
 }

@@ -13,15 +13,21 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.SimpleToolWindowPanel
+import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.components.JBLabel
+import com.intellij.util.ui.UIUtil
+import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
 import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.ui.detail.JavaProcessDetailPanel
 import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetailPanel
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent
+import javax.swing.SwingConstants
 
 class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(false), Disposable {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -36,6 +42,8 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
 
   private var contentSplitter = JBSplitter(0.75f)
   private val processesTable: JavaProcessesTable
+  private var processDetailPanel: ProcessDetailPanel<ProcessNode>? = null
+  private var javaProcessDetailPanel: JavaProcessDetailPanel? = null
 
   private var collectJavaProcessesInProgress = false
 
@@ -48,7 +56,13 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
 
     setContent(contentSplitter.apply {
       firstComponent = ScrollPaneFactory.createScrollPane(processesTable, true)
-      secondComponent = ProcessDetailPanel.NO_PROCESS_SELECTED
+
+      secondComponent = BorderLayoutPanel().apply {
+        background = JBColor.background()
+        foreground = UIUtil.getLabelBackground()
+
+        addToCenter(JBLabel("No process selected", SwingConstants.CENTER))
+      }
     })
   }
 
@@ -104,6 +118,7 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
     val onFinished = {
       collectJavaProcessesInProgress = false
       processesTable.isEnabled = true
+      processDetailPanel?.isEnabled = true
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->
@@ -119,19 +134,40 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
   }
 
   private fun showProcessNodeDetails(processNode: ProcessNode) {
-    contentSplitter.secondComponent = ProcessDetailPanel(processNode) {
-      val parentProcessNode = processNode.parent
-      if (parentProcessNode is ProcessNode) {
-        showProcessNodeDetails(parentProcessNode)
+    contentSplitter.secondComponent = when (processNode) {
+      is JavaProcessNode -> {
+        if (javaProcessDetailPanel == null) {
+          javaProcessDetailPanel = JavaProcessDetailPanel(processNode, showParentProcessNodeDetails(processNode))
+        }
+        else {
+          javaProcessDetailPanel!!.showProcessNode(processNode)
+        }
+        javaProcessDetailPanel
       }
-      else {
-        collectParentProcessNodeDetails(processNode)
+      else -> {
+        if (processDetailPanel == null) {
+          processDetailPanel = ProcessDetailPanel(processNode, showParentProcessNodeDetails(processNode))
+        }
+        else {
+          processDetailPanel!!.showProcessNode(processNode)
+        }
+        processDetailPanel
       }
     }
   }
 
+  private fun showParentProcessNodeDetails(processNode: ProcessNode): () -> Unit = {
+    val parentProcessNode = processNode.parent
+    if (parentProcessNode is ProcessNode) {
+      showProcessNodeDetails(parentProcessNode)
+    }
+    else {
+      collectParentProcessNodeDetails(processNode)
+    }
+  }
+
   private fun collectParentProcessNodeDetails(processNode: ProcessNode) {
-    contentSplitter.secondComponent.isEnabled = false
+    processDetailPanel?.isEnabled = false
 
     val parentProcessId = processNode.process.parentProcessID
 
@@ -146,7 +182,7 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
     }
 
     val onFinished = {
-      contentSplitter.secondComponent.isEnabled = true
+      processDetailPanel?.isEnabled = true
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->
