@@ -21,7 +21,6 @@ import oshi.PlatformEnum
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 
 open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showParentProcessDetails: () -> Unit)
@@ -64,8 +63,11 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class GeneralPanel(processNode: ProcessNode, val showParentProcessDetails: () -> Unit) : JPanel(GridBagLayout()) {
+  private class GeneralPanel(var processNode: ProcessNode, val showParentProcessDetails: () -> Unit) : JPanel(GridBagLayout()) {
 
+    val processDescriptionLabel = JBLabel().copyable()
+    val pidLabel = JBLabel().copyable()
+    var parentProcessComponent: JComponent = createParentProcessComponent(processNode)
     val vszLabel = JBLabel().copyable()
     val userLabel = JBLabel().copyable()
     val groupLabel = JBLabel().copyable()
@@ -84,29 +86,28 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 
       val bag = UiUtils.createDefaultGridBag()
-      val process = processNode.process
 
-      add(JBLabel("<html><b>${processNode.processDescription()}</b></html>", processNode.processType.icon, SwingConstants.LEFT), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
+      add(processDescriptionLabel, bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
 
       add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(JBLabel(process.processID.toString()).copyable(), bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(pidLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(createParentProcessComponent(processNode), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(parentProcessComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       add(JBLabel(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
 
       add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path", process.path, hyperlinkLabel) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path", processNode.process.path, hyperlinkLabel) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line", process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Open working directory").apply {
-        addHyperlinkListener { BrowserUtil.browse(process.currentWorkingDirectory) }
+        addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
 
@@ -159,7 +160,15 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
     }
 
     fun showProcessNode(processNode: ProcessNode) {
+      this.processNode = processNode
+
       val process = processNode.process
+
+      processDescriptionLabel.text = "<html><b>${processNode.processDescription()}</b></html>"
+      processDescriptionLabel.icon = processNode.processType.icon
+
+      pidLabel.text = processNode.process.processID.toString()
+      parentProcessComponent = createParentProcessComponent(processNode)
 
       stateLabel.text = process.state.name
       stateLabel.toolTipText = processNode.stateDescription()
