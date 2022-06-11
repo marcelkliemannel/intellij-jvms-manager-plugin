@@ -21,10 +21,10 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
-import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.detail.JavaProcessDetailPanel
-import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetailPanel
+import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
+import dev.turingcomplete.intellijjpsplugin.ui.detail.JvmProcessDetails
+import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetails
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent
 import javax.swing.SwingConstants
@@ -42,8 +42,10 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
 
   private var contentSplitter = JBSplitter(0.75f)
   private val processesTable: JavaProcessesTable
-  private var processDetailPanel: ProcessDetailPanel<ProcessNode>? = null
-  private var javaProcessDetailPanel: JavaProcessDetailPanel? = null
+
+  // The `ProcessDetails` are reused to keep the memory footprint low.
+  private var processDetails: ProcessDetails<ProcessNode>? = null
+  private var jvmProcessDetails: JvmProcessDetails? = null
 
   private var collectJavaProcessesInProgress = false
 
@@ -52,17 +54,11 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
   init {
     toolbar = createToolbar()
 
-    processesTable = JavaProcessesTable({ collectJavaProcesses() }, { showProcessNodeDetails(it) })
+    processesTable = JavaProcessesTable({ collectJavaProcesses() }, { showProcessDetails(it) })
 
     setContent(contentSplitter.apply {
       firstComponent = ScrollPaneFactory.createScrollPane(processesTable, true)
-
-      secondComponent = BorderLayoutPanel().apply {
-        background = JBColor.background()
-        foreground = UIUtil.getLabelBackground()
-
-        addToCenter(JBLabel("No process selected", SwingConstants.CENTER))
-      }
+      secondComponent = createNoProcessSelectedComponent()
     })
   }
 
@@ -84,6 +80,15 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
               setTargetComponent(this@JavaProcessesPanel)
               component
             }
+  }
+
+  private fun createNoProcessSelectedComponent(): JComponent {
+    return BorderLayoutPanel().apply {
+      background = JBColor.background()
+      foreground = UIUtil.getLabelBackground()
+
+      addToCenter(JBLabel("No process selected", SwingConstants.CENTER))
+    }
   }
 
   private fun createReloadAction(): AnAction {
@@ -111,14 +116,15 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
   }
 
   private fun createJavaProcessesCollectionTask(): CollectJavaProcessNodesTask {
-    val onSuccess: (List<JavaProcessNode>) -> Unit = { javaProcessNodes ->
+    val onSuccess: (List<JvmProcessNode>) -> Unit = { javaProcessNodes ->
       processesTable.setJavaProcessNodes(javaProcessNodes)
     }
 
-    val onFinished = {
+    val onFinished :  () -> Unit = {
       collectJavaProcessesInProgress = false
       processesTable.isEnabled = true
-      processDetailPanel?.isEnabled = true
+      processDetails?.setEnabled(true)
+      jvmProcessDetails?.setEnabled(true)
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->
@@ -133,39 +139,49 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
     return CollectJavaProcessNodesTask(project, onSuccess, onFinished, onThrowable)
   }
 
-  private fun showProcessNodeDetails(processNode: ProcessNode) {
+  private fun showProcessDetails(processNode: ProcessNode) {
     contentSplitter.secondComponent = when (processNode) {
-      is JavaProcessNode -> setJavaProcessDetailPanel(processNode)
-      else -> setProcessDetailPanel(processNode)
-    }
+      is JvmProcessNode -> updateJvmProcessDetails(processNode)
+      else -> updateProcessDetails(processNode)
+    }.component
   }
 
-  private fun setJavaProcessDetailPanel(processNode: JavaProcessNode): JavaProcessDetailPanel {
-    if (javaProcessDetailPanel == null) {
-      javaProcessDetailPanel = JavaProcessDetailPanel(processNode, showParentProcessNodeDetails())
+  /**
+   * Initializes the [jvmProcessDetails] or updates the existing one via
+   * [JvmProcessDetails.showProcessNode].
+   */
+  private fun updateJvmProcessDetails(processNode: JvmProcessNode): JvmProcessDetails {
+    if (jvmProcessDetails == null) {
+      jvmProcessDetails = JvmProcessDetails(processNode, showParentProcessNodeDetails())
     }
     else {
-      javaProcessDetailPanel!!.showProcessNode(processNode)
+      jvmProcessDetails!!.showProcessNode(processNode)
     }
 
-    return javaProcessDetailPanel!!
+    return jvmProcessDetails!!
   }
 
-  private fun setProcessDetailPanel(processNode: ProcessNode): ProcessDetailPanel<ProcessNode> {
-    if (processDetailPanel == null) {
-      processDetailPanel = ProcessDetailPanel(processNode, showParentProcessNodeDetails())
+  /**
+   * Initializes the [processDetails] or updates the existing one via
+   * [ProcessDetails.showProcessNode].
+   */
+  private fun updateProcessDetails(processNode: ProcessNode): ProcessDetails<ProcessNode> {
+    assert(processNode::class.equals(ProcessNode::class))
+
+    if (processDetails == null) {
+      processDetails = ProcessDetails(processNode, showParentProcessNodeDetails())
     }
     else {
-      processDetailPanel!!.showProcessNode(processNode)
+      processDetails!!.showProcessNode(processNode)
     }
 
-    return processDetailPanel!!
+    return processDetails!!
   }
 
   private fun showParentProcessNodeDetails(): (ProcessNode) -> Unit = { processNode ->
     val parentProcessNode = processNode.parent
     if (parentProcessNode is ProcessNode) {
-      showProcessNodeDetails(parentProcessNode)
+      showProcessDetails(parentProcessNode)
     }
     else {
       collectParentProcessNodeDetails(processNode)
@@ -173,13 +189,14 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
   }
 
   private fun collectParentProcessNodeDetails(processNode: ProcessNode) {
-    processDetailPanel?.isEnabled = false
+    processDetails?.setEnabled(false)
+    jvmProcessDetails?.setEnabled(false)
 
     val parentProcessId = processNode.process.parentProcessID
 
     val onSuccess: (ProcessNode?) -> Unit = { parentProcessNode ->
       if (parentProcessNode != null) {
-        showProcessNodeDetails(parentProcessNode)
+        showProcessDetails(parentProcessNode)
         processNode.setParent(parentProcessNode)
       }
       else {
@@ -187,8 +204,9 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
       }
     }
 
-    val onFinished = {
-      processDetailPanel?.isEnabled = true
+    val onFinished : () -> Unit = {
+      processDetails?.setEnabled(true)
+      jvmProcessDetails?.setEnabled(true)
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->

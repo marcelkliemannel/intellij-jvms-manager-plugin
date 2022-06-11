@@ -1,9 +1,11 @@
-package dev.turingcomplete.intellijjpsplugin.process
+package dev.turingcomplete.intellijjpsplugin.process.jvm
 
 import com.sun.tools.attach.VirtualMachineDescriptor
+import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.ProcessType
 import oshi.software.os.OSProcess
 
-class JavaProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) : ProcessNode(process) {
+class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) : ProcessNode(process) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {

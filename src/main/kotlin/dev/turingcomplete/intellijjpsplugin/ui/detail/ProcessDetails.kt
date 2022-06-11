@@ -21,32 +21,24 @@ import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
 import java.awt.GridBagLayout
+import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showParentProcessDetails: (ProcessNode) -> Unit)
-  : BorderLayoutPanel(), DataProvider {
+open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
+                                           private val showParentProcessDetails: (ProcessNode) -> Unit) : DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val tabs = JBTabbedPane()
-  private val generalPanel = GeneralPanel(processNode, showParentProcessDetails)
+  private val tabs: List<ProcessDetailTab> by lazy { createTabs() }
+  val component: JComponent by lazy { createComponent() }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
-
-  init {
-    showProcessNode(processNode)
-
-    addToCenter(tabs.apply {
-      tabComponentInsets = emptyInsets()
-
-      addTab("General", createScrollPane(generalPanel, true))
-    })
-  }
-
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+
+  protected open fun createAdditionalTabs(): Sequence<ProcessDetailTab> = emptySequence()
 
   override fun getData(dataId: String): Any? {
     return when {
@@ -59,13 +51,50 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
   fun showProcessNode(processNode: T) {
     this.processNode = processNode
 
-    generalPanel.showProcessNode(processNode)
+    tabs.forEach { it.showProcessNode(processNode) }
+  }
+
+  fun setEnabled(enabled: Boolean) {
+    component.isEnabled = enabled
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
+
+  private fun createTabs(): List<ProcessDetailTab> {
+    return sequenceOf(GeneralTab(processNode, showParentProcessDetails)).plus(createAdditionalTabs()).toList()
+  }
+
+  private fun createComponent(): JComponent {
+    showProcessNode(processNode)
+
+    return BorderLayoutPanel().apply {
+      addToCenter(JBTabbedPane().apply {
+        tabComponentInsets = emptyInsets()
+
+        tabs.forEach { addTab(it.title, it.icon, createScrollPane(it.createComponent(), true)) }
+      })
+    }
+  }
+
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class GeneralPanel(var processNode: ProcessNode, val showParentProcessDetails: (ProcessNode) -> Unit) : JPanel(GridBagLayout()) {
+  abstract class ProcessDetailTab(val title: String, protected var processNode: ProcessNode, val icon: Icon? = null) {
+
+    abstract fun createComponent(): JComponent
+
+    fun showProcessNode(processNode: ProcessNode) {
+      this.processNode = processNode
+
+      processNodeUpdated()
+    }
+
+    abstract fun processNodeUpdated()
+  }
+
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class GeneralTab(processNode: ProcessNode, val showParentProcessDetails: (ProcessNode) -> Unit)
+    : ProcessDetailTab("General", processNode) {
 
     val processDescriptionLabel = JBLabel().copyable()
     val pidLabel = JBLabel().copyable()
@@ -90,7 +119,7 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
     val majorFailsLabel = JBLabel().copyable()
     val contextSwitchesLabel = JBLabel().copyable()
 
-    init {
+    override fun createComponent() = JPanel(GridBagLayout()).apply {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 
       val bag = UiUtils.createDefaultGridBag()
@@ -116,11 +145,11 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
         addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
-      add(HyperlinkLabel("Show environment variables").apply {
-        addHyperlinkListener {
+      add(HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
+        hyperLinkLabel.addHyperlinkListener {
           val columnNames = arrayOf("Key", "Value")
           val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.toTypedArray()
-          TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", this@apply)
+          TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", hyperLinkLabel)
         }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
@@ -167,13 +196,15 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       add(osThreadsHyperlinkLabel.apply {
         addHyperlinkListener {
           val columnNames = arrayOf("ID", "Name", "State", "Priority", "Start Time", "Up Time")
-          val data = processNode.process.threadDetails.map { arrayOf(it.threadId.toString(),
-                                                                     it.name.takeIf { it.isNotBlank() } ?: "Unknown",
-                                                                     it.state.name,
-                                                                     it.priority.toString(),
-                                                                     formatDateTime(it.startTime),
-                                                                     formatDuration(it.upTime)) }.toTypedArray()
-          TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", this@apply, "\t")
+          val data = processNode.process.threadDetails.map {
+            arrayOf(it.threadId.toString(),
+                    it.name.ifBlank { "Unknown" },
+                    it.state.name,
+                    it.priority.toString(),
+                    formatDateTime(it.startTime),
+                    formatDuration(it.upTime))
+          }.toTypedArray()
+          TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", osThreadsHyperlinkLabel, "\t")
         }
       }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
@@ -208,9 +239,7 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       }
     }
 
-    fun showProcessNode(processNode: ProcessNode) {
-      this.processNode = processNode
-
+    override fun processNodeUpdated() {
       val process = processNode.process
 
       processDescriptionLabel.text = "<html><b>${processNode.processDescription()}</b></html>"

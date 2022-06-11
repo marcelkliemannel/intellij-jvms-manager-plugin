@@ -6,12 +6,13 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.first
 import com.sun.tools.attach.VirtualMachine
+import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
 import oshi.software.os.OSProcess
 import oshi.software.os.OperatingSystem
 import oshi.software.os.OperatingSystem.ProcessSorting
 
 /**
- * Collects all known [JavaProcessNode], which can be retrieved via the
+ * Collects all known [JvmProcessNode], which can be retrieved via the
  * [VirtualMachine] API.
  *
  * If a Java process is a child process of another Java process, it will be
@@ -29,7 +30,7 @@ import oshi.software.os.OperatingSystem.ProcessSorting
  * all processes and then filters out only the desired ones.)
  */
 class CollectJavaProcessNodesTask(project: Project?,
-                                  private val onSuccess: (List<JavaProcessNode>) -> Unit,
+                                  private val onSuccess: (List<JvmProcessNode>) -> Unit,
                                   private val onFinished: () -> Unit,
                                   private val onThrowable: (Throwable) -> Unit)
   : Task.ConditionalModal(project, "Collecting Java processes information", true, ALWAYS_BACKGROUND) {
@@ -42,7 +43,7 @@ class CollectJavaProcessNodesTask(project: Project?,
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val topLevelJavaProcessNodes = mutableListOf<JavaProcessNode>()
+  private val topLevelJvmProcessNodes = mutableListOf<JvmProcessNode>()
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -50,7 +51,7 @@ class CollectJavaProcessNodesTask(project: Project?,
   override fun run(progressIndicator: ProgressIndicator) {
     val startMillis = System.currentTimeMillis()
 
-    topLevelJavaProcessNodes.clear()
+    topLevelJvmProcessNodes.clear()
 
     // Collect all processes current running on the machine.
     val allProcesses = OshiUtils.OPERATION_SYSTEM.getProcesses(null, ProcessSorting.NO_SORTING, 0)
@@ -64,25 +65,25 @@ class CollectJavaProcessNodesTask(project: Project?,
     // children of a non-Java process. In the latter case, they will be later
     // handled as if they are top-level Java processes.
     progressIndicator.checkCanceled()
-    val remainingJavaProcessNodesToAssociate = mutableMapOf<Int, JavaProcessNode>()
+    val remainingJvmProcessNodesToAssociate = mutableMapOf<Int, JvmProcessNode>()
     VirtualMachine.list().forEach { vmDescriptor ->
       val pid = vmDescriptor.id().toIntOrNull() ?: return@forEach
       val process = allProcesses[pid] ?: return@forEach
-      val javaProcessNode = JavaProcessNode(process, vmDescriptor)
+      val jvmProcessNode = JvmProcessNode(process, vmDescriptor)
 
       val isTopLevel = process.parentProcessID == 1 || process.parentProcessID == 0
       if (isTopLevel) {
-        topLevelJavaProcessNodes.add(javaProcessNode)
+        topLevelJvmProcessNodes.add(jvmProcessNode)
       }
       else {
-        remainingJavaProcessNodesToAssociate[pid] = javaProcessNode
+        remainingJvmProcessNodesToAssociate[pid] = jvmProcessNode
       }
     }
 
     // Collect all children of the real top-level Java processes.
     progressIndicator.checkCanceled()
-    topLevelJavaProcessNodes.forEach { javaProcessNode ->
-      collectChildren(allProcesses, javaProcessNode, remainingJavaProcessNodesToAssociate)
+    topLevelJvmProcessNodes.forEach { javaProcessNode ->
+      collectChildren(allProcesses, javaProcessNode, remainingJvmProcessNodesToAssociate)
     }
 
     // The remaining processes in `remainingJavaProcessNodesToAssociate` are
@@ -90,20 +91,20 @@ class CollectJavaProcessNodesTask(project: Project?,
     // top-level Java process. We add these as a top level process to the result
     // so that we have a listing of all Java processes.
     progressIndicator.checkCanceled()
-    while (remainingJavaProcessNodesToAssociate.isNotEmpty()) {
-      val (pid, javaProcessNode) = remainingJavaProcessNodesToAssociate.first()
-      remainingJavaProcessNodesToAssociate.remove(pid)
-      collectChildren(allProcesses, javaProcessNode, remainingJavaProcessNodesToAssociate)
-      topLevelJavaProcessNodes.add(javaProcessNode)
+    while (remainingJvmProcessNodesToAssociate.isNotEmpty()) {
+      val (pid, javaProcessNode) = remainingJvmProcessNodesToAssociate.first()
+      remainingJvmProcessNodesToAssociate.remove(pid)
+      collectChildren(allProcesses, javaProcessNode, remainingJvmProcessNodesToAssociate)
+      topLevelJvmProcessNodes.add(javaProcessNode)
     }
 
-    topLevelJavaProcessNodes.sortWith { a, b -> a.process.processID.compareTo(b.process.processID) }
+    topLevelJvmProcessNodes.sortWith { a, b -> a.process.processID.compareTo(b.process.processID) }
 
     LOG.debug("Took " + (System.currentTimeMillis() - startMillis) + " ms to collect all Java processes.")
   }
 
   override fun onSuccess() {
-    onSuccess(topLevelJavaProcessNodes)
+    onSuccess(topLevelJvmProcessNodes)
   }
 
   override fun onFinished() {
@@ -116,7 +117,7 @@ class CollectJavaProcessNodesTask(project: Project?,
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
-  private fun collectChildren(processes: Map<Int, OSProcess>, parent: ProcessNode, javaProcessesToAssociate: MutableMap<Int, JavaProcessNode>) {
+  private fun collectChildren(processes: Map<Int, OSProcess>, parent: ProcessNode, javaProcessesToAssociate: MutableMap<Int, JvmProcessNode>) {
     processes.filter { it.value.parentProcessID == parent.process.processID }.map { childProcess ->
       val childProcessNode = javaProcessesToAssociate.remove(childProcess.value.processID) ?: ProcessNode(childProcess.value)
       collectChildren(processes, childProcessNode, javaProcessesToAssociate)

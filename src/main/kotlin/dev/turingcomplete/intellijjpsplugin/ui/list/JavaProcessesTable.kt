@@ -11,7 +11,7 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
-import dev.turingcomplete.intellijjpsplugin.process.JavaProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction
@@ -68,7 +68,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  fun setJavaProcessNodes(javaProcessNodes: List<JavaProcessNode>) {
+  fun setJavaProcessNodes(jvmProcessNodes: List<JvmProcessNode>) {
     val oldExpandedPaths = TreeUtil.collectExpandedPaths(tree)
 
     // It's important that we reuse the root node to make `restoreExpandedPaths`
@@ -76,7 +76,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
     val treeModel = tableModel as ListTreeTableModelOnColumns
     val root = treeModel.root as DefaultMutableTreeNode
     root.removeAllChildren()
-    javaProcessNodes.forEach { root.add(it) }
+    jvmProcessNodes.forEach { root.add(it) }
     treeModel.reload()
 
     TreeUtil.restoreExpandedPaths(tree, oldExpandedPaths)
@@ -121,7 +121,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
       append(value.process.processID.toString())
       toolTipText = value.processType.description
 
-      val isJavaProcess = value is JavaProcessNode
+      val isJavaProcess = value is JvmProcessNode
       if (!isJavaProcess) {
         append("*")
         if (toolTipText?.isNotBlank() == true) {
