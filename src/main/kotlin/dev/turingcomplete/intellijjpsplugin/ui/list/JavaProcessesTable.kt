@@ -11,7 +11,7 @@ import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
-import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction

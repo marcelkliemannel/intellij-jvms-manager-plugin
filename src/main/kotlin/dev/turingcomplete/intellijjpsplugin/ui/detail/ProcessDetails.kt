@@ -237,6 +237,9 @@ open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
         }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
         add(contextSwitchesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
       }
+
+      // Fill rest of panel
+      add(JPanel(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
     }
 
     override fun processNodeUpdated() {

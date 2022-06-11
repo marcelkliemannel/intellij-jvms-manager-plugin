@@ -28,9 +28,14 @@ import javax.swing.Icon
 import javax.swing.JLabel
 import javax.swing.JTree
 import javax.swing.UIManager
+import javax.swing.border.Border
+import javax.swing.border.EmptyBorder
 
 internal object UiUtils {
   // -- Properties -------------------------------------------------------------------------------------------------- //
+
+  val EMPTY_BORDER: Border = EmptyBorder(0, 0, 0, 0)
+
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exported Methods -------------------------------------------------------------------------------------------- //
 
@@ -129,6 +134,8 @@ internal object UiUtils {
 
         setSoftWrap(softWrap)
         setBreakCommands(breakCommands)
+
+        textArea.caretPosition = 0
 
         addToCenter(ScrollPaneFactory.createScrollPane(textArea).apply {
           minimumSize = this@TextAreaPanel.minimumSize

@@ -3,6 +3,7 @@ package dev.turingcomplete.intellijjpsplugin.process
 import com.intellij.icons.AllIcons
 import com.intellij.ui.IconManager
 import com.sun.tools.attach.VirtualMachineDescriptor
+import dev.turingcomplete.intellijjpsplugin.ui.common.CommonIcons
 import oshi.software.os.OSProcess
 import javax.swing.Icon
 
@@ -14,9 +15,9 @@ enum class ProcessType(val description: String?, private val loadIcon: (() -> Ic
   GRADLE_DAEMON("Gradle Daemon", "gradle.svg"),
   KOTLIN_COMPILE_DAEMON("Kotlin Compile Daemon", "kotlin.svg"),
   MAVEN_WRAPPER("Maven Wrapper", "maven.svg"),
-  JAVAC("Java Compiler", "java.svg"),
-  JAVA("Java Virtual Machine", "java.svg"),
-  JCEF("Java Chromium Embedded Framework", "java.svg", "https://github.com/JetBrains/jcef"),
+  JAVAC("Java Compiler", { CommonIcons.JAVA }),
+  JAVA("Java Virtual Machine", { CommonIcons.JAVA }),
+  JCEF("Java Chromium Embedded Framework", { CommonIcons.JAVA }, "https://github.com/JetBrains/jcef"),
   UNKNOWN(null, { AllIcons.Debugger.Console });
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //

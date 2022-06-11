@@ -1,8 +1,6 @@
-package dev.turingcomplete.intellijjpsplugin.process.jvm
+package dev.turingcomplete.intellijjpsplugin.process
 
 import com.sun.tools.attach.VirtualMachineDescriptor
-import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.process.ProcessType
 import oshi.software.os.OSProcess
 
 class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) : ProcessNode(process) {

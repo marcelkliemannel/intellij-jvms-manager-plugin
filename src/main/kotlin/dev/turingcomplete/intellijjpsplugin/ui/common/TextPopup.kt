@@ -3,7 +3,9 @@ package dev.turingcomplete.intellijjpsplugin.ui.common
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
+import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
 import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
@@ -25,9 +27,23 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
                   breakCommandSupported: Boolean = false,
                   breakCommand: Boolean = false) {
 
+      create(content, softWrap, breakCommandSupported, breakCommand, title).showAbove(target)
+    }
+
+    fun showCenteredInCurrentWindow(title: String,
+                                    content: String,
+                                    project: Project,
+                                    softWrap: Boolean = true,
+                                    breakCommandSupported: Boolean = false,
+                                    breakCommand: Boolean = false) {
+
+      create(content, softWrap, breakCommandSupported, breakCommand, title).showCenteredInCurrentWindow(project)
+    }
+
+    private fun create(content: String, softWrap: Boolean, breakCommandSupported: Boolean, breakCommand: Boolean, title: String): JBPopup {
       val textPopup = TextPopup(content, softWrap, breakCommandSupported, breakCommand)
 
-      JBPopupFactory.getInstance()
+      return JBPopupFactory.getInstance()
               .createComponentPopupBuilder(textPopup, textPopup)
               .setRequestFocus(true)
               .setTitle(title)
@@ -41,7 +57,6 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
               .setCancelOnClickOutside(true)
               .setCancelOnOtherWindowOpen(false)
               .createPopup()
-              .showAbove(target)
     }
   }
 

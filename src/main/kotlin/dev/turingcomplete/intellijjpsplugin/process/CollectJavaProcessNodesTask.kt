@@ -6,7 +6,6 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.jetbrains.rd.util.first
 import com.sun.tools.attach.VirtualMachine
-import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
 import oshi.software.os.OSProcess
 import oshi.software.os.OperatingSystem
 import oshi.software.os.OperatingSystem.ProcessSorting

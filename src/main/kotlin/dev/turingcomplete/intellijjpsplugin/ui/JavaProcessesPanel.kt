@@ -21,15 +21,15 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
+import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.process.jvm.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.detail.JvmProcessDetails
 import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetails
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
-class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(false), Disposable {
+class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(false), Disposable {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
@@ -152,7 +152,7 @@ class JavaProcessesPanel(private val project: Project?) : SimpleToolWindowPanel(
    */
   private fun updateJvmProcessDetails(processNode: JvmProcessNode): JvmProcessDetails {
     if (jvmProcessDetails == null) {
-      jvmProcessDetails = JvmProcessDetails(processNode, showParentProcessNodeDetails())
+      jvmProcessDetails = JvmProcessDetails(project, processNode, showParentProcessNodeDetails())
     }
     else {
       jvmProcessDetails!!.showProcessNode(processNode)

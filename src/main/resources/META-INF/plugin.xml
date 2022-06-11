@@ -1,15 +1,25 @@
 <idea-plugin>
-    <id>dev.turingcomplete.intellij-jps-plugin</id>
-    <name>Java Processes</name>
-    <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <id>dev.turingcomplete.intellijjpsplugin</id>
+  <name>Java Processes</name>
+  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
-    <description><![CDATA[
+  <description><![CDATA[
     Enter short description for your plugin here.<br>
     <em>most HTML tags may be used</em>
     ]]></description>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <toolWindow id="Java Processes" factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory"
-                    anchor="bottom" canCloseContents="false" secondary="false" />
-    </extensions>
+  <extensionPoints>
+    <extensionPoint name="jvmAction"
+                    interface="dev.turingcomplete.intellijjpsplugin.ui.detail.jvmaction.JvmAction"/>
+  </extensionPoints>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <toolWindow id="Java Processes"
+                factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory"
+                anchor="bottom" canCloseContents="false" secondary="false"/>
+  </extensions>
+
+  <extensions defaultExtensionNs="dev.turingcomplete.intellijjpsplugin">
+    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvmaction.CreateThreadDumpAction" />
+  </extensions>
 </idea-plugin>
