@@ -11,19 +11,12 @@ class JavaProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachi
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
-
-  private val displayName : String by lazy { determineDisplayName() }
-
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   override fun determineProcessType(): ProcessType = ProcessType.determine(process, vmDescriptor)
 
-  override fun displayName(): String = displayName
-
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-
-  private fun determineDisplayName() : String {
+  override fun determineSmartName() : String {
     val vmDisplayName = vmDescriptor.displayName()
 
     if (vmDisplayName.isNotBlank()) {
@@ -38,8 +31,9 @@ class JavaProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachi
       }
     }
 
-    return super.displayName()
+    return super.determineSmartName()
   }
 
+  // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 }

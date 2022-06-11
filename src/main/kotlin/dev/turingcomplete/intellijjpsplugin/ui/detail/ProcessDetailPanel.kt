@@ -3,11 +3,12 @@ package dev.turingcomplete.intellijjpsplugin.ui.detail
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.openapi.util.text.StringUtil.formatDuration
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTabbedPane
-import com.intellij.util.text.DateFormatUtil
+import com.intellij.util.text.DateFormatUtil.formatDateTime
 import com.intellij.util.ui.JBUI.emptyInsets
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
@@ -15,6 +16,7 @@ import dev.turingcomplete.intellijjpsplugin.process.OshiUtils
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESS
 import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.process.stateDescription
 import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
@@ -81,6 +83,12 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
     val userTimeLabel = JBLabel().copyable()
     val kernelTimeLabel = JBLabel().copyable()
     val rssLabel = JBLabel().copyable()
+    val osThreadsHyperlinkLabel = HyperlinkLabel()
+    val bitnessLabel = JBLabel().copyable()
+    val affinityMaskLabel = JBLabel().copyable()
+    val minorFailsLabel = JBLabel().copyable()
+    val majorFailsLabel = JBLabel().copyable()
+    val contextSwitchesLabel = JBLabel().copyable()
 
     init {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
@@ -95,19 +103,25 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(parentProcessWrapper, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
-      add(JBLabel(), bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
-
 
       add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path", processNode.process.path, hyperlinkLabel) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path, hyperlinkLabel) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Open working directory").apply {
         addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
+      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+
+      add(HyperlinkLabel("Show environment variables").apply {
+        addHyperlinkListener {
+          val columnNames = arrayOf("Key", "Value")
+          val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.toTypedArray()
+          TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", this@apply)
+        }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
 
@@ -131,12 +145,12 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       add(kernelTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
 
-      add(JBLabel("RSS memory:").apply {
+      add(JBLabel("RSS mem.:").apply {
         toolTipText = "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."
       }, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
       add(rssLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
-      add(JBLabel("VSZ memory:").apply {
+      add(JBLabel("VSZ mem.:").apply {
         toolTipText = "The virtual memory size (VSZ) shows all memory that the process can access, including memory that is swapped out and memory that is from shared libraries."
       }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(vszLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
@@ -149,6 +163,20 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       add(groupLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
 
+      add(JBLabel("OS threads:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(osThreadsHyperlinkLabel.apply {
+        addHyperlinkListener {
+          val columnNames = arrayOf("ID", "Name", "State", "Priority", "Start Time", "Up Time")
+          val data = processNode.process.threadDetails.map { arrayOf(it.threadId.toString(),
+                                                                     it.name.takeIf { it.isNotBlank() } ?: "Unknown",
+                                                                     it.state.name,
+                                                                     it.priority.toString(),
+                                                                     formatDateTime(it.startTime),
+                                                                     formatDuration(it.upTime)) }.toTypedArray()
+          TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", this@apply, "\t")
+        }
+      }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
       add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(openFilesLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
 
@@ -157,6 +185,27 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
 
       add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+
+      add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(bitnessLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+      add(JBLabel("Affinity mask:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(affinityMaskLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+
+      add(JBLabel(if (PlatformEnum.WINDOWS == OshiUtils.CURRENT_PLATFORM) "Minor:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(minorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+      if (PlatformEnum.WINDOWS != OshiUtils.CURRENT_PLATFORM) {
+        add(JBLabel("Major faults:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+        add(majorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+
+        add(JBLabel("Ctx switches:").apply {
+          toolTipText = "Context switches"
+        }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+        add(contextSwitchesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      }
     }
 
     fun showProcessNode(processNode: ProcessNode) {
@@ -172,14 +221,14 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       parentProcessWrapper.addToCenter(createParentProcessComponent(processNode))
 
       stateLabel.text = process.state.name
-      stateLabel.toolTipText = processNode.stateDescription()
+      stateLabel.toolTipText = process.state.stateDescription()
       priorityLabel.text = process.priority.toString()
       priorityLabel.toolTipText = processNode.priorityDescription()
 
-      startTimeLabel.text = DateFormatUtil.formatDateTime(process.startTime)
-      upTimeLabel.text = StringUtil.formatDuration(process.upTime)
-      userTimeLabel.text = StringUtil.formatDuration(process.userTime)
-      kernelTimeLabel.text = StringUtil.formatDuration(process.kernelTime)
+      startTimeLabel.text = formatDateTime(process.startTime)
+      upTimeLabel.text = formatDuration(process.upTime)
+      userTimeLabel.text = formatDuration(process.userTime)
+      kernelTimeLabel.text = formatDuration(process.kernelTime)
 
       rssLabel.text = StringUtil.formatFileSize(process.residentSetSize)
       vszLabel.text = StringUtil.formatFileSize(process.virtualSize)
@@ -187,9 +236,19 @@ open class ProcessDetailPanel<T : ProcessNode>(private var processNode: T, showP
       userLabel.text = "${process.user} (${process.userID})"
       groupLabel.text = "${process.group} (${process.groupID})"
 
+      osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
       openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
       readLabel.text = FileUtils.byteCountToDisplaySize(process.bytesRead)
       writtenLabel.text = FileUtils.byteCountToDisplaySize(process.bytesWritten)
+
+      bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
+      affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
+
+      minorFailsLabel.text = process.minorFaults.toString()
+      if (PlatformEnum.WINDOWS != OshiUtils.CURRENT_PLATFORM) {
+        majorFailsLabel.text = process.majorFaults.toString() // Included in minor faults
+        contextSwitchesLabel.text = process.contextSwitches.toString()
+      }
     }
 
     private fun createParentProcessComponent(processNode: ProcessNode): JComponent {

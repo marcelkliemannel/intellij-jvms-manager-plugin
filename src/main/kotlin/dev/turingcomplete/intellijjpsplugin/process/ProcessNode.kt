@@ -9,13 +9,14 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val processType: ProcessType by lazy { determineProcessType() }
+  val smartName: String by lazy { determineSmartName() }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   protected open fun determineProcessType(): ProcessType = ProcessType.determine(process, null)
 
-  open fun displayName(): String {
+  protected open fun determineSmartName() : String {
     val processName = process.name
     if (processName.isNotBlank()) {
       return processName
@@ -28,21 +29,6 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
     return when (processType) {
       ProcessType.UNKNOWN -> process.name
       else -> "${processType.description} (${process.name})"
-    }
-  }
-
-  fun stateDescription(): String {
-    return when(process.state) {
-      OSProcess.State.NEW -> "Process is in the creation phase"
-      OSProcess.State.RUNNING -> "Process is in execution"
-      OSProcess.State.SLEEPING -> "Process is in an interruptible sleep state"
-      OSProcess.State.WAITING -> "Process is in a blocked, uninterruptible sleep state"
-      OSProcess.State.ZOMBIE -> "Process is in termination phase"
-      OSProcess.State.STOPPED -> "Process was stopped by the user (e.g., for debugging)"
-      OSProcess.State.INVALID -> "Process is no longer valid, probably due to termination"
-      OSProcess.State.SUSPENDED -> "Waiting if the process has been intentionally suspended"
-      // handle OSProcess.State.OTHER as else
-      else -> "Process is in an unknown or undefined state"
     }
   }
 

@@ -28,7 +28,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
   companion object {
     private fun createProcessesTableColumns(): Array<ColumnInfo<Any, out Any>> {
       return arrayOf(TreeColumnInfo("PID"),
-                     ProcessNodeColumnInfo("Name") { it.displayName() },
+                     ProcessNodeColumnInfo("Name") { it.smartName },
                      ProcessNodeColumnInfo("Uptime") { StringUtil.formatDuration(it.process.upTime) })
     }
   }

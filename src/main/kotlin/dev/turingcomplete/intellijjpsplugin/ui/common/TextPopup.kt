@@ -4,7 +4,6 @@ import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.ui.SimpleToolWindowPanel
-import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
 import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
@@ -26,13 +25,9 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
                   breakCommandSupported: Boolean = false,
                   breakCommand: Boolean = false) {
 
-      create(title, content, softWrap, breakCommandSupported, breakCommand).showAbove(target)
-    }
-
-    private fun create(title: String, content: String, softWrap: Boolean, breakCommandSupported: Boolean, breakCommand: Boolean): JBPopup {
       val textPopup = TextPopup(content, softWrap, breakCommandSupported, breakCommand)
 
-      return JBPopupFactory.getInstance()
+      JBPopupFactory.getInstance()
               .createComponentPopupBuilder(textPopup, textPopup)
               .setRequestFocus(true)
               .setTitle(title)
@@ -46,12 +41,13 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
               .setCancelOnClickOutside(true)
               .setCancelOnOtherWindowOpen(false)
               .createPopup()
+              .showAbove(target)
     }
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val textAreaPanel : UiUtils.Panel.TextAreaPanel
+  private val textAreaPanel: UiUtils.Panel.TextAreaPanel
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
 
