@@ -23,7 +23,7 @@ import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.detail.JvmProcessDetails
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.JvmProcessDetails
 import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetails
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent

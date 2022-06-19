@@ -21,7 +21,6 @@ import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
 import java.awt.GridBagLayout
-import javax.swing.Icon
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
@@ -32,6 +31,7 @@ open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
+  private val tabbedPane = JBTabbedPane()
   private val tabs: List<ProcessDetailTab> by lazy { createTabs() }
   val component: JComponent by lazy { createComponent() }
 
@@ -52,6 +52,7 @@ open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
     this.processNode = processNode
 
     tabs.forEach { it.showProcessNode(processNode) }
+    tabbedPane.selectedIndex = 0
   }
 
   fun setEnabled(enabled: Boolean) {
@@ -68,27 +69,12 @@ open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
     showProcessNode(processNode)
 
     return BorderLayoutPanel().apply {
-      addToCenter(JBTabbedPane().apply {
+      addToCenter(tabbedPane.apply {
         tabComponentInsets = emptyInsets()
 
         tabs.forEach { addTab(it.title, it.icon, createScrollPane(it.createComponent(), true)) }
       })
     }
-  }
-
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
-
-  abstract class ProcessDetailTab(val title: String, protected var processNode: ProcessNode, val icon: Icon? = null) {
-
-    abstract fun createComponent(): JComponent
-
-    fun showProcessNode(processNode: ProcessNode) {
-      this.processNode = processNode
-
-      processNodeUpdated()
-    }
-
-    abstract fun processNodeUpdated()
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

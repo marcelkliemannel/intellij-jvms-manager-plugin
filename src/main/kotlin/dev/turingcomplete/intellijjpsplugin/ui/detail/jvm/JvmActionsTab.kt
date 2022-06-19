@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.detail
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
@@ -11,47 +11,35 @@ import com.intellij.ui.GuiUtils
 import com.intellij.ui.SeparatorWithText
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
-import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
+import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetailTab
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-class JvmProcessDetails(private val project: Project,
-                        jvmProcessNode: JvmProcessNode,
-                        showParentProcessDetails: (ProcessNode) -> Unit)
-  : ProcessDetails<JvmProcessNode>(jvmProcessNode, showParentProcessDetails) {
+class JvmActionsTab(val project: Project, processNode: ProcessNode)
+  : ProcessDetailTab("JVM Actions", processNode) {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  override fun createAdditionalTabs(): Sequence<ProcessDetailTab> {
-    return sequenceOf(JvmActionsTab(project, processNode))
+  override fun createComponent() = JvmActionsPanel(project, processNode)
+
+  override fun processNodeUpdated() {
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class JvmActionsTab(val project: Project, processNode: ProcessNode)
-    : ProcessDetailTab("JVM Actions", processNode) {
-
-    override fun createComponent() = JvmActionsPanel(project, processNode)
-
-    override fun processNodeUpdated() {
-    }
-  }
-
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
-
-  private class JvmActionsPanel(project: Project, processNode: ProcessNode) : JPanel(GridBagLayout()), DataProvider {
+  class JvmActionsPanel(project: Project, processNode: ProcessNode) : JPanel(GridBagLayout()), DataProvider {
 
     private val sdksModel = ProjectSdksModel().apply { syncSdks() }
     private val jdkComboBox = JdkComboBox(project, sdksModel, { it is JavaSdkType }, null, null, null)
