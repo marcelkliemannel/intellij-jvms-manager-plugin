@@ -13,10 +13,10 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.process.action.ForciblyTerminateProcessesAction
-import dev.turingcomplete.intellijjpsplugin.process.action.GracefullyTerminateProcessesAction
-import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESS
-import dev.turingcomplete.intellijjpsplugin.process.action.ProcessNodeActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESS
+import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESSES
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode

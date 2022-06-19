@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.process.action
+package dev.turingcomplete.intellijjpsplugin.ui.action
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnAction

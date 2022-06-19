@@ -10,16 +10,20 @@
 
   <extensionPoints>
     <extensionPoint name="jvmAction"
-                    interface="dev.turingcomplete.intellijjpsplugin.ui.detail.jvmaction.JvmAction"/>
+                    interface="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
     <toolWindow id="Java Processes"
                 factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory"
                 anchor="bottom" canCloseContents="false" secondary="false"/>
+    <notificationGroup id="dev.turingcomplete.intellijjpsplugin.notification-group"
+                       displayType="BALLOON"/>
   </extensions>
 
   <extensions defaultExtensionNs="dev.turingcomplete.intellijjpsplugin">
-    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvmaction.CreateThreadDumpAction" />
+    <jvmAction
+            implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.CreateJvmThreadDumpAction"/>
+    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.GetJvmInformationAction"/>
   </extensions>
 </idea-plugin>

@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.detail.jvmaction
+package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction
 
 class JvmActionException(message: String) : Exception(message) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //

@@ -1,10 +1,9 @@
 package dev.turingcomplete.intellijjpsplugin.ui.common
 
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.ActionGroup
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.ToggleAction
+import com.intellij.ide.DataManager
+import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.ui.ClickListener
@@ -18,16 +17,15 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.datatransfer.StringSelection
+import java.awt.event.ActionEvent
 import java.awt.event.InputEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.Icon
-import javax.swing.JLabel
-import javax.swing.JTree
-import javax.swing.UIManager
+import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
 
@@ -188,4 +186,15 @@ fun JBLabel.xlFont(): JBLabel {
 fun JBLabel.xxlFont(): JBLabel {
   font = font.deriveFont(UIManager.getFont("Label.font").size + JBUIScale.scale(4f))
   return this
+}
+
+fun AnAction.toSwingAction(component: Component, eventPlace: String): AbstractAction {
+  return object: AbstractAction() {
+
+    override fun actionPerformed(e: ActionEvent) {
+      val context = DataManager.getInstance().getDataContext(component)
+      val event = AnActionEvent.createFromAnAction(this@toSwingAction, null, eventPlace, context)
+      ActionUtil.performActionDumbAwareWithCallbacks(this@toSwingAction, event)
+    }
+  }
 }

@@ -1,9 +1,9 @@
-package dev.turingcomplete.intellijjpsplugin.process.action
+package dev.turingcomplete.intellijjpsplugin.ui.action
 
 import com.intellij.openapi.actionSystem.DataKey
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 
-object ProcessNodeActionUtils {
+object ActionUtils {
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val SELECTED_PROCESSES: DataKey<List<ProcessNode>> = DataKey.create("JavaProcessesPlugin.SelectedProcesses")
