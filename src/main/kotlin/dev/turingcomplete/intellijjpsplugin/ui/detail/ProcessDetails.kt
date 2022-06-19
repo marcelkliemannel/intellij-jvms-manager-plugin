@@ -66,13 +66,13 @@ open class ProcessDetails<T : ProcessNode>(protected var processNode: T,
   }
 
   private fun createComponent(): JComponent {
-    showProcessNode(processNode)
-
     return BorderLayoutPanel().apply {
       addToCenter(tabbedPane.apply {
         tabComponentInsets = emptyInsets()
 
         tabs.forEach { addTab(it.title, it.icon, createScrollPane(it.createComponent(), true)) }
+
+        showProcessNode(processNode)
       })
     }
   }
