@@ -119,7 +119,7 @@ internal object UiUtils {
 
       companion object {
         // Matches a white space and a dash if they are not in quotes: https://stackoverflow.com/a/28194133/7059880
-        private val COMMAND_START_REGEX = Regex("\\s-(?=(?:\"[^\"]*\"|[^\"])*\$)")
+        private val COMMAND_START_REGEX = Regex("\\s+-(?=([^\"]*\"[^\"]*\")*[^\"]*\$)")
       }
 
       private val textArea = JBTextArea(content).apply {
