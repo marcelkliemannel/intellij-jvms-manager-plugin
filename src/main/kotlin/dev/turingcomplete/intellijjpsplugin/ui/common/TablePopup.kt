@@ -20,7 +20,7 @@ class TablePopup(data: Array<Array<String>>,
                  columnNames: Array<String>,
                  singleDataName: String,
                  pluralDataName: String,
-                 copySeparator: String) : JBTable(DefaultTableModel(data, columnNames)), DataProvider {
+                 copySeparator: String) : JBTable(MyTableModel(data, columnNames)), DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
@@ -36,14 +36,14 @@ class TablePopup(data: Array<Array<String>>,
                   target: JComponent,
                   copySeparator: String = "=") {
 
-      val textPopup = ScrollPaneFactory.createScrollPane(TablePopup(data, columnNames, singleDataName, pluralDataName, copySeparator), true).apply {
+      val tablePopup = ScrollPaneFactory.createScrollPane(TablePopup(data, columnNames, singleDataName, pluralDataName, copySeparator), true).apply {
         val width = if (columnNames.size < 4) 500 else 650
         val height = if (data.size < 10) 200 else 400
         preferredSize = Dimension(width, height)
       }
 
       JBPopupFactory.getInstance()
-              .createComponentPopupBuilder(textPopup, textPopup)
+              .createComponentPopupBuilder(tablePopup, tablePopup)
               .setRequestFocus(true)
               .setTitle(title)
               .setFocusable(true)
@@ -83,6 +83,16 @@ class TablePopup(data: Array<Array<String>>,
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class MyTableModel(data: Array<Array<String>>, columnNames: Array<String>)
+    : DefaultTableModel(data, columnNames) {
+
+    override fun isCellEditable(row: Int, column: Int): Boolean {
+      return false
+    }
+  }
+
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   class CopyValues(private val singleDataName: String,
