@@ -9,6 +9,7 @@ import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.ui.ClickListener
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SeparatorWithText
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.scale.JBUIScale
@@ -72,6 +73,11 @@ internal object UiUtils {
 
       override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected.invoke(state)
     }
+  }
+
+  fun createSeparator(title: String) = SeparatorWithText().apply {
+    caption = title
+    setCaptionCentered(false)
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

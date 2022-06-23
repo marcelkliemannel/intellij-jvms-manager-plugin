@@ -13,7 +13,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.SimpleToolWindowPanel
-import com.intellij.ui.JBColor
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
@@ -23,8 +22,8 @@ import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.JvmProcessDetails
-import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetails
+import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessNodeDetails
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.JvmProcessNodeDetails
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
 import javax.swing.JComponent
 import javax.swing.SwingConstants
@@ -40,12 +39,10 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
   private val javaProcessesCollectionTask = createJavaProcessesCollectionTask()
 
-  private var contentSplitter = JBSplitter(0.75f)
+  private var contentSplitter = JBSplitter(0.70f)
   private val processesTable: JavaProcessesTable
-
-  // The `ProcessDetails` are reused to keep the memory footprint low.
-  private var processDetails: ProcessDetails<ProcessNode>? = null
-  private var jvmProcessDetails: JvmProcessDetails? = null
+  private var processNodeDetails: ProcessNodeDetails<ProcessNode>? = null
+  private var jvmProcessNodeDetails: JvmProcessNodeDetails? = null
 
   private var collectJavaProcessesInProgress = false
 
@@ -84,10 +81,9 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
   private fun createNoProcessSelectedComponent(): JComponent {
     return BorderLayoutPanel().apply {
-      background = JBColor.background()
-      foreground = UIUtil.getLabelBackground()
-
-      addToCenter(JBLabel("No process selected", SwingConstants.CENTER))
+      addToCenter(JBLabel("No process selected", UIUtil.ComponentStyle.REGULAR, UIUtil.FontColor.BRIGHTER).apply {
+        horizontalAlignment = SwingConstants.CENTER
+      })
     }
   }
 
@@ -120,11 +116,11 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
       processesTable.setJavaProcessNodes(javaProcessNodes)
     }
 
-    val onFinished :  () -> Unit = {
+    val onFinished: () -> Unit = {
       collectJavaProcessesInProgress = false
       processesTable.isEnabled = true
-      processDetails?.setEnabled(true)
-      jvmProcessDetails?.setEnabled(true)
+      processNodeDetails?.setEnabled(true)
+      jvmProcessNodeDetails?.setEnabled(true)
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->
@@ -139,43 +135,23 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
     return CollectJavaProcessNodesTask(project, onSuccess, onFinished, onThrowable)
   }
 
-  private fun showProcessDetails(processNode: ProcessNode) {
-    contentSplitter.secondComponent = when (processNode) {
-      is JvmProcessNode -> updateJvmProcessDetails(processNode)
-      else -> updateProcessDetails(processNode)
-    }.component
+  private fun showProcessDetails(processNode: ProcessNode) = when(processNode) {
+    is JvmProcessNode -> showJvmProcessNode(processNode)
+    else -> showProcessNode(processNode)
   }
 
-  /**
-   * Initializes the [jvmProcessDetails] or updates the existing one via
-   * [JvmProcessDetails.showProcessNode].
-   */
-  private fun updateJvmProcessDetails(processNode: JvmProcessNode): JvmProcessDetails {
-    if (jvmProcessDetails == null) {
-      jvmProcessDetails = JvmProcessDetails(project, processNode, showParentProcessNodeDetails())
+  private fun showJvmProcessNode(processNode: JvmProcessNode) {
+    jvmProcessNodeDetails?.let { it.processNode = processNode } ?: run {
+      jvmProcessNodeDetails = JvmProcessNodeDetails(project, showParentProcessNodeDetails(), processNode)
     }
-    else {
-      jvmProcessDetails!!.showProcessNode(processNode)
-    }
-
-    return jvmProcessDetails!!
+    contentSplitter.secondComponent = jvmProcessNodeDetails!!.component
   }
 
-  /**
-   * Initializes the [processDetails] or updates the existing one via
-   * [ProcessDetails.showProcessNode].
-   */
-  private fun updateProcessDetails(processNode: ProcessNode): ProcessDetails<ProcessNode> {
-    assert(processNode::class.equals(ProcessNode::class))
-
-    if (processDetails == null) {
-      processDetails = ProcessDetails(processNode, showParentProcessNodeDetails())
+  private fun showProcessNode(processNode: ProcessNode) {
+    processNodeDetails?.let { it.processNode = processNode } ?: run {
+      processNodeDetails = ProcessNodeDetails(showParentProcessNodeDetails(), processNode)
     }
-    else {
-      processDetails!!.showProcessNode(processNode)
-    }
-
-    return processDetails!!
+    contentSplitter.secondComponent = processNodeDetails!!.component
   }
 
   private fun showParentProcessNodeDetails(): (ProcessNode) -> Unit = { processNode ->
@@ -189,8 +165,8 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
   }
 
   private fun collectParentProcessNodeDetails(processNode: ProcessNode) {
-    processDetails?.setEnabled(false)
-    jvmProcessDetails?.setEnabled(false)
+    processNodeDetails?.setEnabled(false)
+    jvmProcessNodeDetails?.setEnabled(false)
 
     val parentProcessId = processNode.process.parentProcessID
 
@@ -204,9 +180,9 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
       }
     }
 
-    val onFinished : () -> Unit = {
-      processDetails?.setEnabled(true)
-      jvmProcessDetails?.setEnabled(true)
+    val onFinished: () -> Unit = {
+      processNodeDetails?.setEnabled(true)
+      jvmProcessNodeDetails?.setEnabled(true)
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->

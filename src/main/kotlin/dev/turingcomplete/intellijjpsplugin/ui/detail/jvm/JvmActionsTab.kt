@@ -8,42 +8,46 @@ import com.intellij.openapi.projectRoots.JavaSdkType
 import com.intellij.openapi.roots.ui.configuration.JdkComboBox
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.ui.GuiUtils
-import com.intellij.ui.SeparatorWithText
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
-import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
+import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils.createSeparator
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
-import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetailTab
+import dev.turingcomplete.intellijjpsplugin.ui.detail.DetailTab
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-class JvmActionsTab(val project: Project, processNode: ProcessNode)
-  : ProcessDetailTab("JVM Actions", processNode) {
-
+class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
+  : DetailTab<JvmProcessNode>("JVM Actions", initialProcessNode) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
+
+  private val jvmActionsPanel = JvmActionsPanel()
+
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  override fun createComponent() = JvmActionsPanel(project, processNode)
+  override fun createComponent() = jvmActionsPanel
 
   override fun processNodeUpdated() {
+    jvmActionsPanel.processNodeUpdated()
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  class JvmActionsPanel(project: Project, processNode: ProcessNode) : JPanel(GridBagLayout()), DataProvider {
+  inner class JvmActionsPanel : JPanel(GridBagLayout()), DataProvider {
 
     private val sdksModel = ProjectSdksModel().apply { syncSdks() }
     private val jdkComboBox = JdkComboBox(project, sdksModel, { it is JavaSdkType }, null, null, null)
-    private val jvmActionContext = JvmActionContext(project, { jdkComboBox.selectedJdk }, processNode)
+    private val selectedJdk = { jdkComboBox.selectedJdk }
+    private lateinit var jvmActionContext: JvmActionContext
 
     init {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
@@ -53,7 +57,7 @@ class JvmActionsTab(val project: Project, processNode: ProcessNode)
       val jvmActionsWrapper = JvmActionsWrapper()
 
       add(JBLabel("Use tools from JDK:"), bag.nextLine().next().weightx(1.0).fillCellHorizontally())
-      add(JPanel(HorizontalLayout(UIUtil.DEFAULT_HGAP)).apply {
+      add(JPanel(HorizontalLayout(UIUtil.DEFAULT_HGAP / 2)).apply {
         add(jdkComboBox)
         add(JLabel(AllIcons.General.ContextHelp).apply {
           toolTipText = "<html>Some of the following actions will use the executables from the <code>bin</code> " +
@@ -69,11 +73,17 @@ class JvmActionsTab(val project: Project, processNode: ProcessNode)
 
       // Fill rest of panel
       add(JPanel(), bag.nextLine().next().weightx(1.0).weighty(1.0).fillCell())
+
+      processNodeUpdated()
     }
 
     override fun getData(dataId: String) = when {
       JvmActionContext.DATA_KEY.`is`(dataId) -> jvmActionContext
       else -> null
+    }
+
+    fun processNodeUpdated() {
+      jvmActionContext = JvmActionContext(project, selectedJdk, processNode)
     }
 
     private fun syncJvmActionsWrapper(jvmActionsWrapper: JComponent) {
@@ -91,14 +101,9 @@ class JvmActionsTab(val project: Project, processNode: ProcessNode)
       val bag = UiUtils.createDefaultGridBag()
 
       JvmAction.EP.extensions.forEach { jvmAction ->
-        add(createSeparator(jvmAction), bag.nextLine().next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
+        add(createSeparator(jvmAction.title), bag.nextLine().next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
         add(jvmAction.createComponent(), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally())
       }
-    }
-
-    private fun createSeparator(jvmAction: JvmAction) = SeparatorWithText().apply {
-      caption = jvmAction.title
-      setCaptionCentered(false)
     }
   }
 }

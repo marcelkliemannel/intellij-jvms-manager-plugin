@@ -29,7 +29,7 @@ VM.native_memory
   companion object {
     private val COMMANDS =
       arrayOf(Command("VM.version", "Version", "Prints JVM version information."),
-              Command("VM.info", "Information", "Prints information about the JVM environment and status."),
+              Command("VM.info", "Environment and Status", "Prints information about the JVM environment and status."),
               Command("VM.uptime", "Up Time", "Prints the VM up time.", Impact.LOW, null,
                       BooleanCommandOption("-date", "Add a prefix with the current date.", true)),
               Command("VM.systemdictionary", "System Dictionary", "Prints the statistics for dictionary hashtable sizes and bucket length.", Impact.MEDIUM, null,
@@ -70,7 +70,7 @@ VM.native_memory
   private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>> = { createJToolCommand(it) }
 
   private val taskTitle : (JvmActionContext) -> String = {
-    "${commandSelection.item.title} of PID ${it.processNode.process.processID}"
+    "Getting ${commandSelection.item.title.lowercase()} of PID ${it.processNode.process.processID}"
   }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
@@ -82,7 +82,7 @@ VM.native_memory
     val bag = UiUtils.createDefaultGridBag()
 
     add(commandSelection, bag.nextLine().next())
-    add(commandDescriptionLabel, bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP))
+    add(commandDescriptionLabel, bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
 
     add(commandOptionsWrapper, bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
 

@@ -37,7 +37,7 @@ class TablePopup(data: Array<Array<String>>,
                   copySeparator: String = "=") {
 
       val tablePopup = ScrollPaneFactory.createScrollPane(TablePopup(data, columnNames, singleDataName, pluralDataName, copySeparator), true).apply {
-        val width = if (columnNames.size < 4) 500 else 650
+        val width = if (columnNames.size < 4) 600 else 700
         val height = if (data.size < 10) 200 else 400
         preferredSize = Dimension(width, height)
       }

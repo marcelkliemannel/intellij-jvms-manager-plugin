@@ -1,24 +1,21 @@
-package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm
+package dev.turingcomplete.intellijjpsplugin.ui.detail
 
-import com.intellij.openapi.project.Project
-import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetailTab
-import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDetails
+import javax.swing.JComponent
+import kotlin.properties.Delegates
 
-class JvmProcessDetails(private val project: Project,
-                        jvmProcessNode: JvmProcessNode,
-                        showParentProcessDetails: (ProcessNode) -> Unit)
-  : ProcessDetails<JvmProcessNode>(jvmProcessNode, showParentProcessDetails) {
-
+abstract class DetailTab<T : ProcessNode>(val title: String, initialProcessNode: T) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
+
+  var processNode: T by Delegates.observable(initialProcessNode) { _, _, _ -> processNodeUpdated() }
+
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  override fun createAdditionalTabs(): Sequence<ProcessDetailTab> {
-    return sequenceOf(JvmActionsTab(project, processNode))
-  }
+  abstract fun createComponent(): JComponent
+
+  protected abstract fun processNodeUpdated()
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
