@@ -76,7 +76,7 @@ abstract class JToolRunOption(optionTitle: String, val taskTitle: (JvmActionCont
       processHandler.startNotify()
 
       if (!processHandler.waitFor(TIMEOUT_MILLIS)) {
-        throw JvmActionException("Script execution took more than ${TIMEOUT_MILLIS / 1000} seconds.")
+        throw JvmActionException("Command execution took more than ${TIMEOUT_MILLIS / 1000} seconds.")
       }
     }
 

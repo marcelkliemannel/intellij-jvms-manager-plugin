@@ -2,9 +2,14 @@ package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
 
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
+import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils
+import dev.turingcomplete.intellijjpsplugin.ui.common.TextPopup
 
 class ToStringJToolRunOption(optionTitle: String,
                              taskTitle: (JvmActionContext) -> String,
@@ -45,7 +50,20 @@ class ToStringJToolRunOption(optionTitle: String,
   override fun getProcessAdapter(): ProcessAdapter? = processAdapter!!
 
   override fun onSuccess(jvmActionContext: JvmActionContext) {
-    onSuccess(processAdapter!!.output(), jvmActionContext)
+    val exitCode = processAdapter!!.exitCode()
+    val output = processAdapter!!.output()
+
+    if (exitCode == 0) {
+      onSuccess(output, jvmActionContext)
+    }
+    else {
+      val theTaskTitle = taskTitle(jvmActionContext)
+      NotificationUtils.notify("$theTaskTitle Failed",
+                               "Command failed with exit code: $exitCode.",
+                               jvmActionContext.project,
+                               NotificationType.ERROR,
+                               ShowProcessActionOutput (theTaskTitle, output, jvmActionContext))
+    }
   }
 
   override fun onFinished(jvmActionContext: JvmActionContext) {
@@ -58,11 +76,31 @@ class ToStringJToolRunOption(optionTitle: String,
   class StringAppenderProcessAdapter : ProcessAdapter() {
 
     private val output = StringBuilder()
+    private var exitCode = 0
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
       output.append(event.text)
     }
 
+    override fun processTerminated(event: ProcessEvent) {
+      exitCode = event.exitCode
+    }
+
     fun output(): String = output.toString()
+
+    fun exitCode(): Int = exitCode
+  }
+
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class ShowProcessActionOutput(val taskTitle: String,
+                                        val output: String,
+                                        val jvmActionContext: JvmActionContext)
+    : DumbAwareAction("Show Process Output") {
+
+    override fun actionPerformed(e: AnActionEvent) {
+      val title = "$taskTitle Output"
+      TextPopup.showCenteredInCurrentWindow(title, output, jvmActionContext.project, false)
+    }
   }
 }

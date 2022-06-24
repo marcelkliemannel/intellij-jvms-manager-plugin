@@ -53,12 +53,25 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
   override fun getProcessAdapter(): ProcessAdapter? = processAdapter!!
 
   override fun onSuccess(jvmActionContext: JvmActionContext) {
-    notify(taskTitle(jvmActionContext),
-           "Output written to file: ${processAdapter!!.outputFile.fileName}",
-           jvmActionContext.project,
-           NotificationType.INFORMATION,
-           OpenOutput("Open Output File", processAdapter!!.outputFile),
-           OpenOutput("Open Output Directory", processAdapter!!.outputFile.parent))
+    val exitCode = processAdapter!!.exitCode()
+    val theTaskTitle = taskTitle(jvmActionContext)
+    val options = arrayOf(OpenOutputAction("Open Output File", processAdapter!!.outputFile),
+                          OpenOutputAction("Open Output Directory", processAdapter!!.outputFile.parent))
+
+    if (exitCode == 0) {
+      notify(theTaskTitle,
+             "Output written to file: ${processAdapter!!.outputFile.fileName}",
+             jvmActionContext.project,
+             NotificationType.INFORMATION,
+             *options)
+    }
+    else {
+      notify("$theTaskTitle Failed",
+             "Command failed with exit code: $exitCode. See output file for more information.",
+             jvmActionContext.project,
+             NotificationType.ERROR,
+             *options)
+    }
   }
 
   override fun onFinished(jvmActionContext: JvmActionContext) {
@@ -72,10 +85,17 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
   private class OutputFileProcessAdapter(val outputFile: Path) : ProcessAdapter() {
 
     private val outputStream: OutputStream by lazy { createOutputStream(outputFile) }
+    private var exitCode = 0
 
     override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
       outputStream.write(event.text.toByteArray())
     }
+
+    override fun processTerminated(event: ProcessEvent) {
+      exitCode = event.exitCode
+    }
+
+    fun exitCode(): Int = exitCode
 
     fun close() {
       outputStream.close()
@@ -88,7 +108,7 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class OpenOutput(title: String, val output: Path) : DumbAwareAction(title) {
+  private class OpenOutputAction(title: String, val output: Path) : DumbAwareAction(title) {
 
     override fun actionPerformed(e: AnActionEvent) {
       BrowserUtil.browse(output.toFile())
