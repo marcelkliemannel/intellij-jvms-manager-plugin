@@ -10,6 +10,7 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
 
   val processType: ProcessType by lazy { determineProcessType() }
   val smartName: String by lazy { determineSmartName() }
+  val collectedAtMillis: Long = System.currentTimeMillis()
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //

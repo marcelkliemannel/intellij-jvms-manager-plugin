@@ -13,10 +13,10 @@ import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
-import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESS
 import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -28,8 +28,10 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
   companion object {
     private fun createProcessesTableColumns(): Array<ColumnInfo<Any, out Any>> {
       return arrayOf(TreeColumnInfo("PID"),
-                     ProcessNodeColumnInfo("Name") { it.smartName },
-                     ProcessNodeColumnInfo("Uptime") { StringUtil.formatDuration(it.process.upTime) })
+                     ProcessNodeColumnInfo("Name", { it.smartName }),
+                     ProcessNodeColumnInfo("RSS", { StringUtil.formatFileSize(it.process.residentSetSize) },
+                                           "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."),
+                     ProcessNodeColumnInfo("Uptime", { StringUtil.formatDuration(it.process.upTime) }))
     }
   }
 
@@ -55,8 +57,10 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
       TreeUtil.getSelectedPathIfOne(tree)?.let { slectedPath -> showProcessNodeDetails(slectedPath.lastPathComponent as ProcessNode) }
     }
 
-    columnModel.getColumn(0).preferredWidth = 40
+    columnModel.getColumn(0).preferredWidth = 110
     columnModel.getColumn(1).preferredWidth = 400
+    columnModel.getColumn(2).preferredWidth = 60
+    columnModel.getColumn(4).preferredWidth = 130
 
     tableHeader.resizingAllowed = true
 
@@ -101,11 +105,12 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class ProcessNodeColumnInfo(title: String, val getValue: (ProcessNode) -> String) : ColumnInfo<Any, String>(title) {
+  private class ProcessNodeColumnInfo(title: String, val getValue: (ProcessNode) -> String, val toolTipText: String? = null)
+    : ColumnInfo<Any, String>(title) {
 
-    override fun valueOf(node: Any): String {
-      return if (node is ProcessNode) getValue(node) else node.toString()
-    }
+    override fun valueOf(node: Any): String = if (node is ProcessNode) getValue(node) else node.toString()
+
+    override fun getTooltipText(): String? = toolTipText
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

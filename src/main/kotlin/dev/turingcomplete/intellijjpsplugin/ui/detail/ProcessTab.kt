@@ -47,6 +47,7 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
   private val minorFailsLabel = JBLabel().copyable()
   private val majorFailsLabel = JBLabel().copyable()
   private val contextSwitchesLabel = JBLabel().copyable()
+  private val collectedAtLabel = JBLabel("", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER)
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -89,6 +90,8 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
     add(UiUtils.createSeparator("Details"), bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally())
     add(createDetailsComponent(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
 
+    add(collectedAtLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
+
     // Fill rest of panel
     add(JPanel(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
 
@@ -119,12 +122,12 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
     add(kernelTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
 
-    add(JBLabel("RSS mem.:").apply {
+    add(JBLabel("RSS memory:").apply {
       toolTipText = "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."
     }, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(rssLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    add(JBLabel("VSZ mem.:").apply {
+    add(JBLabel("VSZ memory:").apply {
       toolTipText = "The virtual memory size (VSZ) shows all memory that the process can access, including memory that is swapped out and memory that is from shared libraries."
     }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(vszLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
@@ -215,8 +218,10 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
 
     osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
     openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
-    readLabel.text = FileUtils.byteCountToDisplaySize(process.bytesRead)
-    writtenLabel.text = FileUtils.byteCountToDisplaySize(process.bytesWritten)
+    val bytesRead = process.bytesRead
+    readLabel.text = "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
+    val bytesWritten = process.bytesWritten
+    writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
 
     bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
@@ -226,6 +231,8 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
       majorFailsLabel.text = process.majorFaults.toString() // Included in minor faults
       contextSwitchesLabel.text = process.contextSwitches.toString()
     }
+
+    collectedAtLabel.text = "Collected at: ${DateFormatUtil.formatDate(processNode.collectedAtMillis)} ${DateFormatUtil.formatTimeWithSeconds(processNode.collectedAtMillis)}"
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
