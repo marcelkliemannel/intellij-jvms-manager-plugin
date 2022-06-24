@@ -25,5 +25,6 @@
     <jvmAction
             implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.CreateJvmThreadDumpAction"/>
     <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.GetJvmInformationAction"/>
+    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.GarbageCollectorAction"/>
   </extensions>
 </idea-plugin>

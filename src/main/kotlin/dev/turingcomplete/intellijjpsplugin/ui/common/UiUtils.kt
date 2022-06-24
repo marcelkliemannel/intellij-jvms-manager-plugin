@@ -80,6 +80,10 @@ internal object UiUtils {
     setCaptionCentered(false)
   }
 
+  fun createContextHelpLabel(text: String) = JLabel(AllIcons.General.ContextHelp).apply {
+    toolTipText = text
+  }
+
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 

@@ -117,7 +117,7 @@ VM.native_memory
     commandOptionsWrapper.removeAll()
 
     val command = commandSelection.item
-    commandDescriptionLabel.toolTipText = "<html>${command.description}<br><br>${command.impact.displayText} performance impact on the target JVM.</html>"
+    commandDescriptionLabel.toolTipText = "<html>${command.description}<br><br>${command.impact.displayText} performance impact on the JVM.</html>"
 
     val bag = UiUtils.createDefaultGridBag()
 
