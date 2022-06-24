@@ -50,17 +50,20 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
     })
 
     selectionModel.addListSelectionListener {
-      if (it.valueIsAdjusting) {
+      // This listener gets called for every row during the refresh of this
+      // table. We prevent this by only reacting to events that have been
+      // coming from an enabled table.
+      if (it.valueIsAdjusting || !isEnabled) {
         return@addListSelectionListener
       }
 
-      TreeUtil.getSelectedPathIfOne(tree)?.let { slectedPath -> showProcessNodeDetails(slectedPath.lastPathComponent as ProcessNode) }
+      TreeUtil.getSelectedPathIfOne(tree)?.let { selectedPath -> showProcessNodeDetails(selectedPath.lastPathComponent as ProcessNode) }
     }
 
     columnModel.getColumn(0).preferredWidth = 110
     columnModel.getColumn(1).preferredWidth = 400
     columnModel.getColumn(2).preferredWidth = 60
-    columnModel.getColumn(4).preferredWidth = 130
+    columnModel.getColumn(3).preferredWidth = 130
 
     tableHeader.resizingAllowed = true
 

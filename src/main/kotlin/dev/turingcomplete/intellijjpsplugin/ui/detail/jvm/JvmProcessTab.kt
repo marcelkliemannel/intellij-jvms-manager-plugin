@@ -16,10 +16,11 @@ import java.util.*
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
 
-class JvmProcessTab(private val project: Project,
+class JvmProcessTab(project: Project,
                     showParentProcessDetails: (ProcessNode) -> Unit,
+                    processTerminated: () -> Unit,
                     initialProcessNode: JvmProcessNode)
-  : ProcessTab<JvmProcessNode>(showParentProcessDetails, initialProcessNode, "JVM") {
+  : ProcessTab<JvmProcessNode>(project, showParentProcessDetails, processTerminated, initialProcessNode, "JVM") {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 

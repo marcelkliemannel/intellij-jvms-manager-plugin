@@ -1,6 +1,17 @@
 package dev.turingcomplete.intellijjpsplugin.ui.detail
 
+import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.Task
+import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
@@ -11,6 +22,11 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.OshiUtils
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.stateDescription
+import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesPanel
+import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
+import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils
+import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
@@ -19,7 +35,9 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
 
-open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNode) -> Unit,
+open class ProcessTab<T : ProcessNode>(protected val project: Project,
+                                       protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
+                                       private val processTerminated: () -> Unit,
                                        initialProcessNode: T,
                                        title: String = "Process") : DetailTab<T>(title, initialProcessNode) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -52,55 +70,93 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  final override fun createComponent() = JPanel(GridBagLayout()).apply {
-    border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
+  final override fun createComponent() : JComponent = object : JPanel(GridBagLayout()), DataProvider {
+    init {
+      border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 
-    val bag = UiUtils.createDefaultGridBag()
+      val bag = UiUtils.createDefaultGridBag()
 
-    add(processDescriptionLabel, bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
+      add(BorderLayoutPanel().run {
+        addToLeft(processDescriptionLabel)
+        addToRight(createProcessToolbar(this))
+      }, bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
 
-    add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(pidLabel, bag.next().overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
+      add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(pidLabel, bag.next().overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
 
-    add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(parentProcessWrapper, bag.next().overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
+      add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(parentProcessWrapper, bag.next().overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
 
-    addAdditionalMainInformation(bag)
+      addAdditionalMainInformation(bag)
 
-    add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
-      hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path, hyperlinkLabel) }
-    }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
+      add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path, hyperlinkLabel) }
+      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
 
-    add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
-      hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
-    }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+      add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
+      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
-    add(HyperlinkLabel("Open working directory").apply {
-      addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
-    }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+      add(HyperlinkLabel("Open working directory").apply {
+        addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
+      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
-    add(HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
-      hyperLinkLabel.addHyperlinkListener {
-        val columnNames = arrayOf("Key", "Value")
-        val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.sortedBy { it[0] }.toTypedArray()
-        TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", hyperLinkLabel)
-      }
-    }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+      add(HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
+        hyperLinkLabel.addHyperlinkListener {
+          val columnNames = arrayOf("Key", "Value")
+          val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.sortedBy { it[0] }.toTypedArray()
+          TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", hyperLinkLabel)
+        }
+      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
-    add(UiUtils.createSeparator("Details"), bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_HGAP).weightx(1.0).fillCellHorizontally())
-    add(createDetailsComponent(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
+      add(createDetailsComponent(), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
 
-    add(collectedAtLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
+      add(collectedAtLabel, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
 
-    // Fill rest of panel
-    add(JPanel(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
+      // Fill rest of panel
+      add(JPanel(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
 
-    processNodeUpdated()
+      processNodeUpdated()
+    }
+
+    override fun getData(dataId: String) : Any? = when {
+      ActionUtils.SELECTED_PROCESSES.`is`(dataId) -> listOf<ProcessNode>(processNode)
+      ActionUtils.SELECTED_PROCESS.`is`(dataId) -> processNode
+      else -> null
+    }
+  }
+
+  private fun createProcessToolbar(parent: JComponent): JComponent {
+    val processToolsGroup = DefaultActionGroup("Process Actions", true).apply {
+      templatePresentation.icon = AllIcons.General.GearPlain
+      add(GracefullyTerminateProcessesAction().onFinished { processTerminated() })
+      add(ForciblyTerminateProcessesAction().onFinished { processTerminated() })
+    }
+    val topActionGroup = DefaultActionGroup(processToolsGroup, createRefreshAction())
+
+    val myToolbar = ActionManager.getInstance().createActionToolbar("${JavaProcessesToolWindowFactory.PLACE_PREFIX}.toolbar.processDetails", topActionGroup, true)
+    myToolbar.setTargetComponent(parent)
+    return myToolbar.component.apply {
+      border = null
+    }
+  }
+
+  private fun createRefreshAction() = object : DumbAwareAction(AllIcons.Actions.Refresh) {
+
+    var performing = false
+
+    override fun update(e: AnActionEvent) {
+      e.presentation.isEnabled = !performing
+    }
+
+    override fun actionPerformed(e: AnActionEvent) {
+      performing = true
+      UpdateProcessInformation(processNode, project, { processNodeUpdated() }, { performing = false }).queue()
+    }
   }
 
   private fun createDetailsComponent(): JPanel = JPanel(GridBagLayout()).apply {
     val bag = UiUtils.createDefaultGridBag()
-    border = EmptyBorder(UIUtil.PANEL_SMALL_INSETS)
 
     add(JBLabel("In state:"), bag.nextLine().next())
     add(stateLabel, bag.next().weightx(1.0).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
@@ -253,7 +309,7 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
     }
 
     return if (hyperlinkText != null) {
-      HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessDetails(processNode) } }
+      HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessNodeDetails(processNode) } }
     }
     else {
       JBLabel("Unknown")
@@ -261,4 +317,32 @@ open class ProcessTab<T : ProcessNode>(val showParentProcessDetails: (ProcessNod
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class UpdateProcessInformation(val processNode: ProcessNode, project: Project,
+                                         val onSuccess: () -> Unit,
+                                         val onFinished: () -> Unit)
+    : Task.ConditionalModal(project, "Updating process information", false, DEAF) {
+
+    companion object {
+      private val LOG = Logger.getInstance(JavaProcessesPanel::class.java)
+    }
+
+    override fun run(indicator: ProgressIndicator) {
+      processNode.update()
+    }
+
+    override fun onThrowable(error: Throwable) {
+      val errorMessage = "Failed to update information of PID ${processNode.process.processID}"
+      LOG.warn(errorMessage, error)
+      Messages.showErrorDialog(project, "$errorMessage\nSee idea.log for more details.", "Updating Process Information Failed")
+    }
+
+    override fun onSuccess() {
+      onSuccess.invoke()
+    }
+
+    override fun onFinished() {
+      onFinished.invoke()
+    }
+  }
 }

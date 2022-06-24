@@ -33,13 +33,19 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
   companion object {
     private val LOG = Logger.getInstance(JavaProcessesPanel::class.java)
+
+    private val NO_PROCESS_SELECTED_COMPONENT = BorderLayoutPanel().apply {
+      addToCenter(JBLabel("No process selected", UIUtil.ComponentStyle.REGULAR, UIUtil.FontColor.BRIGHTER).apply {
+        horizontalAlignment = SwingConstants.CENTER
+      })
+    }
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private val javaProcessesCollectionTask = createJavaProcessesCollectionTask()
 
-  private var contentSplitter = JBSplitter(0.70f)
+  private var contentSplitter = JBSplitter(0.72f)
   private val processesTable: JavaProcessesTable
   private var processNodeDetails: ProcessNodeDetails<ProcessNode>? = null
   private var jvmProcessNodeDetails: JvmProcessNodeDetails? = null
@@ -55,7 +61,7 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
     setContent(contentSplitter.apply {
       firstComponent = ScrollPaneFactory.createScrollPane(processesTable, true)
-      secondComponent = createNoProcessSelectedComponent()
+      secondComponent = NO_PROCESS_SELECTED_COMPONENT
     })
   }
 
@@ -79,14 +85,6 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
             }
   }
 
-  private fun createNoProcessSelectedComponent(): JComponent {
-    return BorderLayoutPanel().apply {
-      addToCenter(JBLabel("No process selected", UIUtil.ComponentStyle.REGULAR, UIUtil.FontColor.BRIGHTER).apply {
-        horizontalAlignment = SwingConstants.CENTER
-      })
-    }
-  }
-
   private fun createReloadAction(): AnAction {
     return object : DumbAwareAction("Reload", null, AllIcons.Actions.Refresh) {
 
@@ -107,6 +105,8 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
     collectJavaProcessesInProgress = true
     processesTable.isEnabled = false
+    processNodeDetails?.setEnabled(false)
+    jvmProcessNodeDetails?.setEnabled(false)
 
     javaProcessesCollectionTask.queue()
   }
@@ -142,16 +142,21 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
   private fun showJvmProcessNode(processNode: JvmProcessNode) {
     jvmProcessNodeDetails?.let { it.processNode = processNode } ?: run {
-      jvmProcessNodeDetails = JvmProcessNodeDetails(project, showParentProcessNodeDetails(), processNode)
+      jvmProcessNodeDetails = JvmProcessNodeDetails(project, showParentProcessNodeDetails(), processTerminated(), processNode)
     }
     contentSplitter.secondComponent = jvmProcessNodeDetails!!.component
   }
 
   private fun showProcessNode(processNode: ProcessNode) {
     processNodeDetails?.let { it.processNode = processNode } ?: run {
-      processNodeDetails = ProcessNodeDetails(showParentProcessNodeDetails(), processNode)
+      processNodeDetails = ProcessNodeDetails(project, showParentProcessNodeDetails(), processTerminated(), processNode)
     }
     contentSplitter.secondComponent = processNodeDetails!!.component
+  }
+
+  private fun processTerminated(): () -> Unit = {
+    collectJavaProcesses()
+    contentSplitter.secondComponent = NO_PROCESS_SELECTED_COMPONENT
   }
 
   private fun showParentProcessNodeDetails(): (ProcessNode) -> Unit = { processNode ->

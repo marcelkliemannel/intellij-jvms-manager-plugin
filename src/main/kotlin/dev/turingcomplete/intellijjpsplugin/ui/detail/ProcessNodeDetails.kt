@@ -1,6 +1,7 @@
 package dev.turingcomplete.intellijjpsplugin.ui.detail
 
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI.emptyInsets
@@ -11,13 +12,19 @@ import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCE
 import javax.swing.JComponent
 import kotlin.properties.Delegates
 
-open class ProcessNodeDetails<T : ProcessNode>(protected val showParentProcessDetails: (ProcessNode) -> Unit,
+open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
+                                               protected val showParentProcessDetails: (ProcessNode) -> Unit,
+                                               protected val processTerminated: () -> Unit,
                                                initialProcessNode: T) : DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  var processNode: T by Delegates.observable(initialProcessNode) { _, _, _ -> processNodeUpdated() }
+  var processNode: T by Delegates.observable(initialProcessNode) { _, old, new ->
+    if (old != new) {
+      processNodeUpdated()
+    }
+  }
 
   private val tabbedPane = JBTabbedPane()
   private val tabs: List<DetailTab<T>> by lazy { createTabs() }
@@ -27,7 +34,7 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val showParentProcessDe
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   protected open fun createTabs(): List<DetailTab<T>> {
-    return listOf(ProcessTab(showParentProcessDetails, processNode))
+    return listOf(ProcessTab(project, showParentProcessDetails, processTerminated, processNode))
   }
 
   override fun getData(dataId: String): Any? {

@@ -43,19 +43,17 @@ internal object UiUtils {
           .setDefaultInsets(0, 0, 0, 0)
           .setDefaultFill(GridBagConstraints.NONE)
 
-  fun createCopyToClipboardButton(value: () -> String): JLabel {
-    return object : JLabel(AllIcons.Actions.Copy) {
+  fun createCopyToClipboardButton(value: () -> String) = object : JLabel(AllIcons.Actions.Copy) {
 
-      init {
-        object : ClickListener() {
-          override fun onClick(e: MouseEvent, clickCount: Int): Boolean {
-            CopyPasteManager.getInstance().setContents(StringSelection(value()))
-            return true
-          }
-        }.installOn(this)
+    init {
+      object : ClickListener() {
+        override fun onClick(e: MouseEvent, clickCount: Int): Boolean {
+          CopyPasteManager.getInstance().setContents(StringSelection(value()))
+          return true
+        }
+      }.installOn(this)
 
-        toolTipText = "Copy to Clipboard"
-      }
+      toolTipText = "Copy to Clipboard"
     }
   }
 

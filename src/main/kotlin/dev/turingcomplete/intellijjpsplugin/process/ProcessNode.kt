@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjpsplugin.process
 
+import com.intellij.openapi.application.ApplicationManager
 import oshi.PlatformEnum
 import oshi.software.os.OSProcess
 import javax.swing.tree.DefaultMutableTreeNode
@@ -10,7 +11,8 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
 
   val processType: ProcessType by lazy { determineProcessType() }
   val smartName: String by lazy { determineSmartName() }
-  val collectedAtMillis: Long = System.currentTimeMillis()
+  var collectedAtMillis: Long = System.currentTimeMillis()
+    private set
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -59,6 +61,13 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
 
   override fun hashCode(): Int {
     return process.processID
+  }
+
+  fun update() {
+    assert(!ApplicationManager.getApplication().isDispatchThread)
+
+    process.updateAttributes()
+    collectedAtMillis = System.currentTimeMillis()
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

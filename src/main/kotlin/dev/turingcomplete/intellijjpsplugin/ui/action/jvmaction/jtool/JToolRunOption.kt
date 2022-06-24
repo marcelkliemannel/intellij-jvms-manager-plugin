@@ -83,7 +83,7 @@ abstract class JToolRunOption(optionTitle: String, val taskTitle: (JvmActionCont
     override fun onThrowable(error: Throwable) {
       val errorMessage = "Failed to run JVM Action '$taskTitle': ${error.message}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project, "$errorMessage\nSee idea.log for more details.", "$taskTitle Failed")
+      Messages.showErrorDialog(project, "$errorMessage\nSee idea.log for more details.", "$taskTitle failed")
     }
 
     override fun onSuccess() {
