@@ -334,7 +334,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     override fun onThrowable(error: Throwable) {
       val errorMessage = "Failed to update information of PID ${processNode.process.processID}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project, "$errorMessage\nSee idea.log for more details.", "Updating Process Information Failed")
+      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Updating Process Information Failed")
     }
 
     override fun onSuccess() {

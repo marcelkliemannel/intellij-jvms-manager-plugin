@@ -1,7 +1,6 @@
 package dev.turingcomplete.intellijjpsplugin.ui.action
 
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.actionSystem.DataKey
@@ -10,13 +9,14 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAware
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import javax.swing.Icon
 
 abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val processNodesDataKey: DataKey<List<ProcessNode>>)
-  : AnAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess), DumbAware {
+  : DumbAwareAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess), DumbAware {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 

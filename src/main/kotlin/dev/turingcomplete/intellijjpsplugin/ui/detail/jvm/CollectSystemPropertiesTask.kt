@@ -22,7 +22,7 @@ class CollectSystemPropertiesTask(project: Project,
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private lateinit var systemProperties : Properties
+  private lateinit var systemProperties: Properties
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -42,7 +42,11 @@ class CollectSystemPropertiesTask(project: Project,
   override fun onThrowable(error: Throwable) {
     val errorMessage = "Failed to collect system properties of PID ${processNode.process.processID}: ${error.message}"
     LOG.warn(errorMessage, error)
-    Messages.showErrorDialog(project, "$errorMessage\nSee idea.log for more details.", "Collecting System Properties Failed")
+    Messages.showErrorDialog(project,
+                             "$errorMessage\n\n" +
+                             "Try to run the 'System Properties' option under 'JVM Actions' > 'Get JVM Information'.\n\n" +
+                             "See idea.log for more details.",
+                             "Collecting System Properties Failed")
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

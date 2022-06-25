@@ -4,10 +4,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.ide.actions.CollapseAllAction
 import com.intellij.ide.actions.ExpandAllAction
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnAction
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -19,9 +16,10 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
-import dev.turingcomplete.intellijjpsplugin.process.CollectProcessNodeTask
+import dev.turingcomplete.intellijjpsplugin.process.FindProcessNodeTask
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.ui.common.IntInputValidator
 import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessNodeDetails
 import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.JvmProcessNodeDetails
 import dev.turingcomplete.intellijjpsplugin.ui.list.JavaProcessesTable
@@ -73,9 +71,14 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
   private fun createToolbar(): JComponent {
-    val toolbarGroup = DefaultActionGroup(createReloadAction(),
-                                          ExpandAllAction { processesTable.treeExpander },
-                                          CollapseAllAction { processesTable.treeExpander })
+    val toolbarGroup = DefaultActionGroup().apply {
+      add(createReloadAction())
+      addSeparator()
+      add(ExpandAllAction { processesTable.treeExpander })
+      add(CollapseAllAction { processesTable.treeExpander })
+      addSeparator()
+      add(createFindProcessNodeAction())
+    }
 
     return ActionManager.getInstance()
             .createActionToolbar("${JavaProcessesToolWindowFactory.PLACE_PREFIX}.toolbar.processes", toolbarGroup, false)
@@ -94,6 +97,42 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
 
       override fun actionPerformed(e: AnActionEvent) {
         collectJavaProcesses()
+      }
+    }
+  }
+
+  private fun createFindProcessNodeAction(): AnAction {
+    return object : DumbAwareAction("Find Process Information", null, AllIcons.Actions.Search) {
+
+      private var findInProcess = false
+
+      override fun update(e: AnActionEvent) {
+        e.presentation.isEnabled = !findInProcess
+      }
+
+      override fun actionPerformed(e: AnActionEvent) {
+        val project = CommonDataKeys.PROJECT.getData(e.dataContext)
+
+        val pid = Messages.showInputDialog(project, "Please enter a PID:", "Find Process Information",
+                                              null, null, IntInputValidator.INSTANCE)?.toIntOrNull() ?: return
+
+        val onSuccess: (ProcessNode?) -> Unit = {
+          if (it != null) {
+            showProcessDetails(it)
+          }
+          else {
+            Messages.showErrorDialog(project, "No process with PID $pid found.", "Finding Process Information Failed")
+          }
+        }
+
+        val onThrowable: (Throwable) -> Unit = { error ->
+          val errorMessage = "Failed to find process: ${error.message}"
+          LOG.warn(errorMessage, error)
+          Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Finding Process Information Failed")
+        }
+
+        findInProcess= true
+        FindProcessNodeTask(pid, project, onSuccess, { findInProcess = false }, onThrowable).queue()
       }
     }
   }
@@ -126,16 +165,13 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
     val onThrowable: (Throwable) -> Unit = { error ->
       val errorMessage = "Failed to collect information about all Java processes: ${error.message}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project,
-                               "$errorMessage\n" +
-                               "See idea.log for more details.\nIf you think this error should not appear, please report a bug.",
-                               "Collecting Java Processes Information Failed")
+      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Collecting Java Processes Information Failed")
     }
 
     return CollectJavaProcessNodesTask(project, onSuccess, onFinished, onThrowable)
   }
 
-  private fun showProcessDetails(processNode: ProcessNode) = when(processNode) {
+  private fun showProcessDetails(processNode: ProcessNode) = when (processNode) {
     is JvmProcessNode -> showJvmProcessNode(processNode)
     else -> showProcessNode(processNode)
   }
@@ -193,13 +229,10 @@ class JavaProcessesPanel(private val project: Project) : SimpleToolWindowPanel(f
     val onThrowable: (Throwable) -> Unit = { error ->
       val errorMessage = "Failed to collect information about process with PID $parentProcessId: ${error.message}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project,
-                               "$errorMessage\n" +
-                               "See idea.log for more details.\nIf you think this error should not appear, please report a bug.",
-                               "Collecting Process Information Failed")
+      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Collecting Process Information Failed")
     }
 
-    CollectProcessNodeTask(parentProcessId, project, onSuccess, onFinished, onThrowable).queue()
+    FindProcessNodeTask(parentProcessId, project, onSuccess, onFinished, onThrowable).queue()
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
