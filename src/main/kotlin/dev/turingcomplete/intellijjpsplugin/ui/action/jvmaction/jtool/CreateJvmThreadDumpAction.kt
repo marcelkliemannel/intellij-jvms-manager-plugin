@@ -54,7 +54,7 @@ class CreateJvmThreadDumpAction : JvmAction("Creating Thread Dump") {
       unscrambleDialog.setText(result)
       unscrambleDialog.show()
     }
-    return ToStringJToolRunOption("Run - Open In Thread Dump Analyzer", TASK_TITLE, createJToolCommand, onSuccess)
+    return ToStringJToolRunOption("Run - Show In Thread Dump Analyzer", TASK_TITLE, createJToolCommand, onSuccess)
   }
 
   private fun createOpenResultInPopupRunOption(): AnAction {
@@ -62,7 +62,7 @@ class CreateJvmThreadDumpAction : JvmAction("Creating Thread Dump") {
       val title = "Thread Dump of PID ${jvmActionContext.processNode.process.processID}"
       TextPopup.showCenteredInCurrentWindow(title, result, jvmActionContext.project, false)
     }
-    return ToStringJToolRunOption("Run", TASK_TITLE, createJToolCommand, onSuccess)
+    return ToStringJToolRunOption("Run - Show Output", TASK_TITLE, createJToolCommand, onSuccess)
   }
 
   private fun createToFileJToolRunOption(): AnAction {

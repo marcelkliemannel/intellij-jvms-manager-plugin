@@ -14,9 +14,12 @@ import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesPanel
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionException
 import java.nio.file.Path
+import javax.swing.Icon
 
-abstract class JToolRunOption(optionTitle: String, val taskTitle: (JvmActionContext) -> String)
-  : DumbAwareAction(optionTitle, null, AllIcons.RunConfigurations.TestState.Run) {
+abstract class JToolRunOption(optionTitle: String,
+                              val taskTitle: (JvmActionContext) -> String,
+                              val icon : Icon = AllIcons.RunConfigurations.TestState.Run)
+  : DumbAwareAction(optionTitle, null, icon) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //

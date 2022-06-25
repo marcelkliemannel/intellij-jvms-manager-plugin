@@ -2,6 +2,7 @@ package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
 
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -21,7 +22,7 @@ import kotlin.io.path.outputStream
 class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
                            private val defaultFileNamePrefix: String,
                            private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>)
-  : JToolRunOption("Run - Save to File", taskTitle) {
+  : JToolRunOption("Run - Save Output to File", taskTitle, AllIcons.Actions.MenuSaveall) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
