@@ -40,5 +40,7 @@
             implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GetJvmInformationAction"/>
     <jvmAction
             implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GarbageCollectorAction"/>
+    <jvmAction
+            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.JvmMonitoringAction"/>
   </extensions>
 </idea-plugin>

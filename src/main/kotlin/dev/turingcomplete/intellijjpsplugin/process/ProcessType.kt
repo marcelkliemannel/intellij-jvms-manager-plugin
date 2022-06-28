@@ -33,7 +33,7 @@ enum class ProcessType(val description: String?, private val loadIcon: (() -> Ic
         process.commandLine?.contains("org.jetbrains.kotlin.daemon.KotlinCompileDaemon") == true -> KOTLIN_COMPILE_DAEMON
         process.commandLine?.contains("org.apache.maven.wrapper.MavenWrapperMain") == true -> MAVEN_WRAPPER
         process.name == "java" -> JAVA
-        else -> UNKNOWN
+        else -> if (vmDescriptor != null) JAVA else UNKNOWN
       }
     }
   }

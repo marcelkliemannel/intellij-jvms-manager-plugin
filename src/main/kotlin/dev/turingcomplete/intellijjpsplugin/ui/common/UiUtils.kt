@@ -33,6 +33,7 @@ internal object UiUtils {
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val EMPTY_BORDER: Border = EmptyBorder(0, 0, 0, 0)
+  val EMPTY_FILL_PANEL : () -> JPanel = { BorderLayoutPanel().apply { border = EMPTY_BORDER } }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exported Methods -------------------------------------------------------------------------------------------- //

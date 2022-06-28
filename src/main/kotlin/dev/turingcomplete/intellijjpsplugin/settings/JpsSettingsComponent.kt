@@ -6,6 +6,7 @@ import com.intellij.openapi.roots.ui.configuration.JdkComboBox
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.UIUtil
+import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -21,7 +22,7 @@ internal class JpsSettingsComponent {
           .addComponent(JBLabel("<html>Some of the JVM action will use the executables from the <code>bin</code> " +
                                 "directory of the selected JDK.<br>The availability of the actions depends on the " +
                                 "version of the JDK and its vendor.</html>", UIUtil.ComponentStyle.SMALL), 0)
-          .addComponentFillVertically(JPanel(), 0)
+          .addComponentFillVertically(UiUtils.EMPTY_FILL_PANEL(), 0)
           .panel
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //

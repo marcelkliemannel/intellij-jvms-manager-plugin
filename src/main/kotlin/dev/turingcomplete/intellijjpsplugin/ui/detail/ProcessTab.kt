@@ -98,7 +98,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       add(collectedAtLabel, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
 
       // Fill rest of panel
-      add(JPanel(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
+      add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
 
       processNodeUpdated()
     }

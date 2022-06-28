@@ -22,7 +22,7 @@ import javax.swing.Icon
 
 abstract class JToolRunOption(optionTitle: String,
                               val taskTitle: (JvmActionContext) -> String,
-                              val icon : Icon = AllIcons.RunConfigurations.TestState.Run)
+                              val icon: Icon = AllIcons.RunConfigurations.TestState.Run)
   : DumbAwareAction(optionTitle, null, icon) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
@@ -43,7 +43,8 @@ abstract class JToolRunOption(optionTitle: String,
       return
     }
 
-    JToolActionTask(jvmActionContext, this, taskTitle(jvmActionContext), jvmActionJdk).queue()
+    JToolActionTask(jvmActionContext, this, taskTitle(jvmActionContext),
+                    jvmActionJdk, waitForTermination()).queue()
   }
 
   open fun getProcessAdapter(): ProcessAdapter? = null
@@ -58,13 +59,16 @@ abstract class JToolRunOption(optionTitle: String,
   open fun onFinished(jvmActionContext: JvmActionContext) {
   }
 
+  open fun waitForTermination(): Boolean = true
+
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   private class JToolActionTask(private val jvmActionContext: JvmActionContext,
                                 private val jToolRunOption: JToolRunOption,
                                 private val taskTitle: String,
-                                private val jdk: Sdk)
+                                private val jdk: Sdk,
+                                private val waitForTermination: Boolean = true)
     : Task.ConditionalModal(jvmActionContext.project, taskTitle, false, DEAF) {
 
     companion object {
@@ -82,13 +86,15 @@ abstract class JToolRunOption(optionTitle: String,
       }
 
       val processHandler = OSProcessHandler(commandLine)
-      LOG.assertTrue(!processHandler.isStartNotified)
 
-      jToolRunOption.getProcessAdapter()?.let { processHandler.addProcessListener(it) }
-      processHandler.startNotify()
+      if (waitForTermination) {
+        LOG.assertTrue(!processHandler.isStartNotified)
+        jToolRunOption.getProcessAdapter()?.let { processHandler.addProcessListener(it) }
+        processHandler.startNotify()
 
-      if (!processHandler.waitFor(TIMEOUT_MILLIS)) {
-        throw JvmActionException("Command execution took more than ${TIMEOUT_MILLIS / 1000} seconds.")
+        if (!processHandler.waitFor(TIMEOUT_MILLIS)) {
+          throw JvmActionException("Command execution took more than ${TIMEOUT_MILLIS / 1000} seconds.")
+        }
       }
     }
 

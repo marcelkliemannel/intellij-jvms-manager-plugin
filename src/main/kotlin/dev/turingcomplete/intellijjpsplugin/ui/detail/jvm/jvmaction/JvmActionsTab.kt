@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.util.ui.UIUtil
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
+import dev.turingcomplete.intellijjpsplugin.ui.common.overrideBottomInset
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
 import dev.turingcomplete.intellijjpsplugin.ui.detail.DetailTab
 import dev.turingcomplete.intellijjpsplugin.ui.detail.ProcessDescriptionPanel
@@ -49,7 +50,7 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
       add(JvmActionsWrapper(), bag.nextLine().next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
 
       // Fill rest of panel
-      add(JPanel(), bag.nextLine().next().weightx(1.0).weighty(1.0).fillCell())
+      add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().weightx(1.0).overrideBottomInset(UIUtil.DEFAULT_HGAP / 2).weighty(1.0).fillCell())
 
       newProcessNodeSet()
     }

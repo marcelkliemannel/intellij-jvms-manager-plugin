@@ -3,7 +3,6 @@ package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.util.ui.UIUtil
 import dev.turingcomplete.intellijjpsplugin.ui.common.AnActionOptionButton
-import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideLeftInset
 import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmAction
@@ -12,7 +11,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JPanel
 
-class GarbageCollectorAction : JvmAction("Garbage Collector") {
+class JvmMonitoringAction : JvmAction("Monitoring") {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //
@@ -23,8 +22,8 @@ class GarbageCollectorAction : JvmAction("Garbage Collector") {
 
     val bag = UiUtils.createDefaultGridBag()
 
-    add(AnActionOptionButton(createRunGarbageCollectionRunOption()), bag.nextLine().next())
-    add(UiUtils.createContextHelpLabel("Medium performance impact on the JVM."), bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
+    add(AnActionOptionButton(createStartJConsoleRunOption()), bag.nextLine().next())
+    add(UiUtils.createContextHelpLabel("Starts a graphical interface to monitor and manage Java virtual machines."), bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
 
     // Stretch panel horizontally
     add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
@@ -32,18 +31,13 @@ class GarbageCollectorAction : JvmAction("Garbage Collector") {
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
-  private fun createRunGarbageCollectionRunOption(): AnAction {
-    val onSuccess: (String, JvmActionContext) -> Unit = { _, jvmActionContext ->
-      NotificationUtils.notifyBalloon("Run Garbage Collection",
-                                      "Garbage collection triggered on PID ${jvmActionContext.processNode.process.processID}.",
-                                      jvmActionContext.project)
-    }
+  private fun createStartJConsoleRunOption(): AnAction {
     val commandLine: (JvmActionContext) -> Pair<JTool, List<String>> = {
-      Pair(JTool.JCMD, listOf(it.processNode.process.processID.toString(), "GC.run"))
+      Pair(JTool.JCONSOLE, listOf(it.processNode.process.processID.toString()))
     }
-    return ToStringJToolRunOption("Run Garbage Collection",
-                                  { "Triggering Garbage Collection on PID ${it.processNode.process.processID}" },
-                                  commandLine, onSuccess)
+    return NotWaitingJToolRunOption("Start JConsole",
+                                    { "Starting JConsole for PID ${it.processNode.process.processID}" },
+                                    commandLine)
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
