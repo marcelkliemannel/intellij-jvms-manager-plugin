@@ -7,12 +7,18 @@ import javax.swing.tree.DefaultMutableTreeNode
 
 open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
+
+  companion object {
+    private const val TERMINATION_TRIGGERED_WARNING_TEXT = "<html>Termination of this process was triggered.</html>"
+  }
+
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val processType: ProcessType by lazy { determineProcessType() }
   val smartName: String by lazy { determineSmartName() }
   var collectedAtMillis: Long = System.currentTimeMillis()
     private set
+  var warningText: String? = null
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -66,8 +72,24 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
   fun update() {
     assert(!ApplicationManager.getApplication().isDispatchThread)
 
-    process.updateAttributes()
-    collectedAtMillis = System.currentTimeMillis()
+    val attributesUpdated: Boolean = process.updateAttributes()
+    if (!attributesUpdated) {
+      warningText = "<html>Failed to update process information.<br>The process was probably terminated.</html>"
+    }
+    else {
+      warningText = null
+      collectedAtMillis = System.currentTimeMillis()
+    }
+  }
+
+  fun terminateGracefully() {
+    ProcessHandle.of(process.processID.toLong()).ifPresent { it.destroy() }
+    warningText = TERMINATION_TRIGGERED_WARNING_TEXT
+  }
+
+  fun terminateForcibly() {
+    ProcessHandle.of(process.processID.toLong()).ifPresent { it.destroyForcibly() }
+    warningText = TERMINATION_TRIGGERED_WARNING_TEXT
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

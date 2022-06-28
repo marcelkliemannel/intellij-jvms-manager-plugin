@@ -7,14 +7,13 @@ import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI.emptyInsets
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESS
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.CURRENT_PROCESS_DETAILS_DATA_KEY
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import javax.swing.JComponent
 import kotlin.properties.Delegates
 
 open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
                                                protected val showParentProcessDetails: (ProcessNode) -> Unit,
-                                               protected val processTerminated: () -> Unit,
                                                initialProcessNode: T) : DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -22,7 +21,8 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
 
   var processNode: T by Delegates.observable(initialProcessNode) { _, old, new ->
     if (old != new) {
-      processNodeUpdated()
+      tabs.forEach { it.processNode = processNode }
+      tabbedPane.selectedIndex = 0
     }
   }
 
@@ -34,13 +34,13 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   protected open fun createTabs(): List<DetailTab<T>> {
-    return listOf(ProcessTab(project, showParentProcessDetails, processTerminated, processNode))
+    return listOf(ProcessTab(project, showParentProcessDetails, processNode))
   }
 
   override fun getData(dataId: String): Any? {
     return when {
-      SELECTED_PROCESSES.`is`(dataId) -> listOf(processNode)
-      SELECTED_PROCESS.`is`(dataId) -> processNode
+      SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> listOf(processNode)
+      CURRENT_PROCESS_DETAILS_DATA_KEY.`is`(dataId) -> processNode
       else -> null
     }
   }
@@ -52,18 +52,25 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
   private fun createComponent(): JComponent {
-    return BorderLayoutPanel().apply {
-      addToCenter(tabbedPane.apply {
-        tabComponentInsets = emptyInsets()
+    return object: BorderLayoutPanel(), DataProvider {
 
-        tabs.forEach { addTab(it.title, null, createScrollPane(it.createComponent(), true)) }
-      })
+      init {
+        addToCenter(tabbedPane.apply {
+          tabComponentInsets = emptyInsets()
+
+          tabs.forEach { addTab(it.title, null, createScrollPane(it.createComponent(), true)) }
+        })
+      }
+
+      override fun getData(dataId: String): Any? = when {
+        CURRENT_PROCESS_DETAILS_DATA_KEY.`is`(dataId) -> processNode
+        else -> null
+      }
     }
   }
 
-  private fun processNodeUpdated() {
-    tabs.forEach { it.processNode = processNode }
-    tabbedPane.selectedIndex = 0
+  fun processDetailsUpdated() {
+    tabs[tabbedPane.selectedIndex].processNodeUpdated()
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

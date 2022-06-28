@@ -32,7 +32,7 @@ class CollectJavaProcessNodesTask(project: Project?,
                                   private val onSuccess: (List<JvmProcessNode>) -> Unit,
                                   private val onFinished: () -> Unit,
                                   private val onThrowable: (Throwable) -> Unit)
-  : Task.ConditionalModal(project, "Collecting Java processes information", true, ALWAYS_BACKGROUND) {
+  : Task.Backgroundable(project, "Collecting Java processes information") {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 

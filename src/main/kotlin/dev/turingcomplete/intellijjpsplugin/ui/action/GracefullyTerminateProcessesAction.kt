@@ -5,10 +5,11 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import javax.swing.Icon
 
-class GracefullyTerminateProcessesAction : TerminateProcessesAction<GracefullyTerminateProcessesAction>(SELECTED_PROCESSES) {
+class GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
+  : TerminateProcessesAction<GracefullyTerminateProcessesAction>(collectJavaProcessesOnSuccess, SELECTED_PROCESSES_DATA_KEY) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
@@ -35,9 +36,7 @@ class GracefullyTerminateProcessesAction : TerminateProcessesAction<GracefullyTe
     progressIndicator.text2 = message
     LOG.info(message)
 
-    ProcessHandle.of(processNode.process.processID.toLong()).ifPresent {
-      it.destroy()
-    }
+    processNode.terminateGracefully()
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

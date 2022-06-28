@@ -12,10 +12,16 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.util.concurrency.AppExecutorUtil
+import dev.turingcomplete.intellijjpsplugin.JpsPluginService
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys
+import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils
+import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
-abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val processNodesDataKey: DataKey<List<ProcessNode>>)
+abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val collectJavaProcessesOnSuccess: Boolean,
+                                                                         private val processNodesDataKey: DataKey<List<ProcessNode>>)
   : DumbAwareAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess), DumbAware {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -25,9 +31,6 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   }
 
   // -- Variables --------------------------------------------------------------------------------------------------- //
-
-  private var onFinished: () -> Unit = {}
-
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exported Methods -------------------------------------------------------------------------------------------- //
 
@@ -41,9 +44,9 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   final override fun actionPerformed(e: AnActionEvent) {
     TerminateProcessesTask(e.project, createTitle(e.dataContext),
                            getProcessNodes(e.dataContext),
+                           collectJavaProcessesOnSuccess,
                            { processNode, progressIndicator -> terminate(processNode, progressIndicator) },
-                           { processNode, error -> createErrorMessage(processNode, error) },
-                           onFinished)
+                           { processNode, error -> createErrorMessage(processNode, error) })
             .queue()
   }
 
@@ -56,14 +59,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   abstract fun icon(): Icon
 
   protected fun getProcessNodes(dataContext: DataContext): List<ProcessNode> {
-    return processNodesDataKey.getData(dataContext)
-           ?: throw IllegalStateException("Data context is missing required data key '${processNodesDataKey.name}'.")
-  }
-
-  fun onFinished(onFinished: () -> Unit): T {
-    this.onFinished = onFinished
-    @Suppress("UNCHECKED_CAST")
-    return this as T
+    return CommonsDataKeys.getRequiredData(processNodesDataKey, dataContext)
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
@@ -72,9 +68,9 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   private class TerminateProcessesTask(project: Project?,
                                        title: String,
                                        val processNodes: List<ProcessNode>,
-                                       val terminate: (ProcessNode, ProgressIndicator) -> Unit,
-                                       val createErrorMessage: (ProcessNode, Throwable) -> String,
-                                       val onFinished: () -> Unit)
+                                       val collectJavaProcessesOnSuccess: Boolean,
+                                       val terminateProcess: (ProcessNode, ProgressIndicator) -> Unit,
+                                       val createErrorMessage: (ProcessNode, Throwable) -> String)
 
     : Task.ConditionalModal(project, title, true, ALWAYS_BACKGROUND) {
 
@@ -83,7 +79,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
     override fun run(progressIndicator: ProgressIndicator) {
       processNodes.forEach { processNode ->
         try {
-          terminate(processNode, progressIndicator)
+          terminateProcess(processNode, progressIndicator)
         }
         catch (e: Exception) {
           deferredFailures.add(createErrorMessage(processNode, e))
@@ -91,12 +87,30 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
       }
     }
 
+    override fun onSuccess() {
+      if (collectJavaProcessesOnSuccess) {
+        // Wait a second to give the process time to terminate
+        AppExecutorUtil.getAppScheduledExecutorService()
+                .schedule({ project.getService(JpsPluginService::class.java).collectJavaProcesses() },
+                          1, TimeUnit.SECONDS)
+      }
+
+      val message = if (processNodes.size > 1) {
+        "Termination of the processes with PIDs ${processNodes.joinToString { it.process.processID.toString() }} was triggered."
+      }
+      else {
+        "Termination of process with PID ${processNodes[0].process.processID} was triggered."
+      }
+      NotificationUtils.notifyOnToolWindow(message, project)
+
+      project.getService(JpsPluginService::class.java).processDetailsUpdated(processNodes)
+    }
+
     override fun onThrowable(error: Throwable) {
       LOG.warn("Failed to execute process termination task.", error)
       ApplicationManager.getApplication().invokeLater {
         Messages.showErrorDialog(project,
-                                 "Failed to execute process termination task: ${error.message}\nSee idea.log " +
-                                 "for more details.\nIf you think this error should not appear, please report a bug.",
+                                 "Failed to execute process termination task: ${error.message}\nSee idea.log for more details.",
                                  "Terminate Processes Failed")
       }
     }
@@ -107,7 +121,6 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
           Messages.showErrorDialog(project, deferredFailures.joinToString("\n\n"), "Terminate Processes Failed")
         }
       }
-      onFinished.invoke()
     }
   }
 }

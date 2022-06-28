@@ -1,15 +1,15 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.unscramble.UnscrambleDialog
 import com.intellij.util.ui.UIUtil
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.common.AnActionOptionButton
 import dev.turingcomplete.intellijjpsplugin.ui.common.TextPopup
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmAction
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionContext
 import java.awt.GridBagLayout
 import javax.swing.JPanel
 

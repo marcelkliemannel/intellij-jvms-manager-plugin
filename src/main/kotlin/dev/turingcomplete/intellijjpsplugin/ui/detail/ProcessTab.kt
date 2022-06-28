@@ -1,17 +1,8 @@
 package dev.turingcomplete.intellijjpsplugin.ui.detail
 
-import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.DefaultActionGroup
-import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.progress.ProgressIndicator
-import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
@@ -22,11 +13,7 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.process.OshiUtils
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.stateDescription
-import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesPanel
-import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils
-import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
-import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys
 import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
@@ -37,13 +24,13 @@ import javax.swing.border.EmptyBorder
 
 open class ProcessTab<T : ProcessNode>(protected val project: Project,
                                        protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
-                                       private val processTerminated: () -> Unit,
                                        initialProcessNode: T,
                                        title: String = "Process") : DetailTab<T>(title, initialProcessNode) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val processDescriptionLabel = JBLabel().copyable()
+  private val processDescriptionPanel = ProcessDescriptionPanel(project)
+
   private val pidLabel = JBLabel().copyable()
   private var parentProcessWrapper: BorderLayoutPanel = BorderLayoutPanel()
   private val vszLabel = JBLabel().copyable()
@@ -76,13 +63,10 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
 
       val bag = UiUtils.createDefaultGridBag()
 
-      add(BorderLayoutPanel().run {
-        addToLeft(processDescriptionLabel)
-        addToRight(createProcessToolbar(this))
-      }, bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
+      add(processDescriptionPanel, bag.nextLine().next().coverLine().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-      add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-      add(pidLabel, bag.next().overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
+      add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP))
+      add(pidLabel, bag.next().overrideTopInset(UIUtil.DEFAULT_HGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
 
       add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(parentProcessWrapper, bag.next().overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
@@ -120,38 +104,8 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     }
 
     override fun getData(dataId: String) : Any? = when {
-      ActionUtils.SELECTED_PROCESSES.`is`(dataId) -> listOf<ProcessNode>(processNode)
-      ActionUtils.SELECTED_PROCESS.`is`(dataId) -> processNode
+      CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> listOf<ProcessNode>(processNode)
       else -> null
-    }
-  }
-
-  private fun createProcessToolbar(parent: JComponent): JComponent {
-    val processToolsGroup = DefaultActionGroup("Process Actions", true).apply {
-      templatePresentation.icon = AllIcons.General.GearPlain
-      add(GracefullyTerminateProcessesAction().onFinished { processTerminated() })
-      add(ForciblyTerminateProcessesAction().onFinished { processTerminated() })
-    }
-    val topActionGroup = DefaultActionGroup(processToolsGroup, createRefreshAction())
-
-    val myToolbar = ActionManager.getInstance().createActionToolbar("${JavaProcessesToolWindowFactory.PLACE_PREFIX}.toolbar.processDetails", topActionGroup, true)
-    myToolbar.setTargetComponent(parent)
-    return myToolbar.component.apply {
-      border = null
-    }
-  }
-
-  private fun createRefreshAction() = object : DumbAwareAction(AllIcons.Actions.Refresh) {
-
-    var performing = false
-
-    override fun update(e: AnActionEvent) {
-      e.presentation.isEnabled = !performing
-    }
-
-    override fun actionPerformed(e: AnActionEvent) {
-      performing = true
-      UpdateProcessInformation(processNode, project, { processNodeUpdated() }, { performing = false }).queue()
     }
   }
 
@@ -247,10 +201,9 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   }
 
   override fun processNodeUpdated() {
-    val process = processNode.process
+    processDescriptionPanel.processNodeUpdated(processNode)
 
-    processDescriptionLabel.text = "<html><b>${processNode.processDescription()}</b></html>"
-    processDescriptionLabel.icon = processNode.processType.icon
+    val process = processNode.process
 
     pidLabel.text = processNode.process.processID.toString()
     parentProcessWrapper.removeAll()
@@ -317,32 +270,4 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
-
-  private class UpdateProcessInformation(val processNode: ProcessNode, project: Project,
-                                         val onSuccess: () -> Unit,
-                                         val onFinished: () -> Unit)
-    : Task.ConditionalModal(project, "Updating process information", false, DEAF) {
-
-    companion object {
-      private val LOG = Logger.getInstance(JavaProcessesPanel::class.java)
-    }
-
-    override fun run(indicator: ProgressIndicator) {
-      processNode.update()
-    }
-
-    override fun onThrowable(error: Throwable) {
-      val errorMessage = "Failed to update information of PID ${processNode.process.processID}"
-      LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Updating Process Information Failed")
-    }
-
-    override fun onSuccess() {
-      onSuccess.invoke()
-    }
-
-    override fun onFinished() {
-      onFinished.invoke()
-    }
-  }
 }

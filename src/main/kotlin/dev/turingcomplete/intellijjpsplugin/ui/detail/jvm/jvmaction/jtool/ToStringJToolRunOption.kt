@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -7,9 +7,9 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Key
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.TextPopup
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionContext
 
 class ToStringJToolRunOption(optionTitle: String,
                              taskTitle: (JvmActionContext) -> String,
@@ -58,11 +58,11 @@ class ToStringJToolRunOption(optionTitle: String,
     }
     else {
       val theTaskTitle = taskTitle(jvmActionContext)
-      NotificationUtils.notify("$theTaskTitle Failed",
-                               "Command failed with exit code: $exitCode.",
-                               jvmActionContext.project,
-                               NotificationType.ERROR,
-                               ShowProcessActionOutput (theTaskTitle, output, jvmActionContext))
+      NotificationUtils.notifyBalloon("$theTaskTitle Failed",
+                                      "Command failed with exit code: $exitCode.",
+                                      jvmActionContext.project,
+                                      NotificationType.ERROR,
+                                      ShowProcessActionOutput(theTaskTitle, output, jvmActionContext))
     }
   }
 
@@ -99,7 +99,7 @@ class ToStringJToolRunOption(optionTitle: String,
     : DumbAwareAction("Show Process Output") {
 
     override fun actionPerformed(e: AnActionEvent) {
-      val title = "$taskTitle Output"
+      val title = "Output of '$taskTitle'"
       TextPopup.showCenteredInCurrentWindow(title, output, jvmActionContext.project, false)
     }
   }

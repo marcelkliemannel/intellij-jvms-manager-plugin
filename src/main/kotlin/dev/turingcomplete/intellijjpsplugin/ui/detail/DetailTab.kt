@@ -15,8 +15,7 @@ abstract class DetailTab<T : ProcessNode>(val title: String, initialProcessNode:
 
   abstract fun createComponent(): JComponent
 
-  protected abstract fun processNodeUpdated()
+  abstract fun processNodeUpdated()
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 }

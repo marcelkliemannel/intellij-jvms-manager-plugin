@@ -8,7 +8,7 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
-import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
+import dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils.createSimpleToggleAction
 import java.awt.Dimension
 import javax.swing.JComponent
@@ -98,7 +98,7 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
     }
 
     return ActionManager.getInstance()
-            .createActionToolbar("${JavaProcessesToolWindowFactory.PLACE_PREFIX}.toolbar.textPopup", toolbarGroup, false)
+            .createActionToolbar("${JpsToolWindowFactory.TOOLBAR_PLACE_PREFIX}.toolbar.textPopup", toolbarGroup, false)
             .run {
               setTargetComponent(this@TextPopup)
               component

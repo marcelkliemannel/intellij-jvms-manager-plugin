@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
@@ -10,8 +10,8 @@ import com.intellij.openapi.fileChooser.FileChooserFactory
 import com.intellij.openapi.fileChooser.FileSaverDescriptor
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.Key
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
-import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils.notify
+import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils.notifyBalloon
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionContext
 import java.io.OutputStream
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -60,18 +60,18 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
                           OpenOutputAction("Open Output Directory", processAdapter!!.outputFile.parent))
 
     if (exitCode == 0) {
-      notify(theTaskTitle,
-             "Output written to file: ${processAdapter!!.outputFile.fileName}",
-             jvmActionContext.project,
-             NotificationType.INFORMATION,
-             *options)
+      notifyBalloon(theTaskTitle,
+                    "Output written to file: ${processAdapter!!.outputFile.fileName}",
+                    jvmActionContext.project,
+                    NotificationType.INFORMATION,
+                    *options)
     }
     else {
-      notify("$theTaskTitle Failed",
-             "Command failed with exit code: $exitCode. See output file for more information.",
-             jvmActionContext.project,
-             NotificationType.ERROR,
-             *options)
+      notifyBalloon("$theTaskTitle Failed",
+                    "Command failed with exit code: $exitCode. See output file for more information.",
+                    jvmActionContext.project,
+                    NotificationType.ERROR,
+                    *options)
     }
   }
 

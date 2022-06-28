@@ -1,7 +1,7 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import dev.turingcomplete.intellijjpsplugin.process.OshiUtils
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionException
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionException
 import oshi.PlatformEnum
 import java.nio.file.Files
 import java.nio.file.Path

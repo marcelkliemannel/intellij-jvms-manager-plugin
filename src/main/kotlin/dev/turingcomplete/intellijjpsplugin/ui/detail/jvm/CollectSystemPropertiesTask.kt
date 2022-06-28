@@ -6,6 +6,7 @@ import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionsTab
 import java.util.*
 
 class CollectSystemPropertiesTask(project: Project,

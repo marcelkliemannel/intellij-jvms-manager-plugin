@@ -11,20 +11,27 @@ object NotificationUtils {
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exported Methods -------------------------------------------------------------------------------------------- //
 
-  fun notify(title: String,
-             message: String,
-             project: Project?,
-             notificationType: NotificationType = NotificationType.INFORMATION,
-             vararg actions: AnAction) {
+  fun notifyBalloon(title: String, message: String, project: Project?,
+                    notificationType: NotificationType = NotificationType.INFORMATION,
+                    vararg actions: AnAction) {
 
     ApplicationManager.getApplication().invokeLater {
       val notification = NotificationGroupManager.getInstance()
-              .getNotificationGroup("dev.turingcomplete.intellijjpsplugin.notification-group")
+              .getNotificationGroup("JPS Plugin | Balloon")
               .createNotification(title, message, notificationType)
 
       actions.forEach { notification.addAction(it) }
 
       notification.notify(project)
+    }
+  }
+
+  fun notifyOnToolWindow(message: String, project: Project?, notificationType: NotificationType = NotificationType.INFORMATION) {
+    ApplicationManager.getApplication().invokeLater {
+      NotificationGroupManager.getInstance()
+              .getNotificationGroup("JPS Plugin | Tool Window")
+              .createNotification(message, notificationType)
+              .notify(project)
     }
   }
 

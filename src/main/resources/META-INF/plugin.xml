@@ -10,21 +10,35 @@
 
   <extensionPoints>
     <extensionPoint name="jvmAction"
-                    interface="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction"/>
+                    interface="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmAction"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <toolWindow id="Java Processes"
-                factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory"
+    <applicationService
+            serviceImplementation="dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsService"/>
+    <applicationConfigurable
+            parentId="tools"
+            instance="dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
+            id=" dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
+            displayName="Java Processes"/>
+    <toolWindow id="JPS"
+                factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory"
                 anchor="bottom" canCloseContents="false" secondary="false"/>
-    <notificationGroup id="dev.turingcomplete.intellijjpsplugin.notification-group"
-                       displayType="BALLOON"/>
+    <notificationGroup id="JPS Plugin | Balloon" displayType="BALLOON"/>
+    <notificationGroup id="JPS Plugin | Tool Window" displayType="TOOL_WINDOW" toolWindowId="JPS"/>
+
+    <getDataRule key="dev.turingcomplete.intellijjpsplugin.currentProcessDetails"
+                 implementationClass="dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys$CurrentProcessDetailsDataRule"/>
+    <getDataRule key="dev.turingcomplete.intellijjpsplugin.collectJvmProcessNodesTaskRunning"
+                 implementationClass="dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys$CollectJvmProcessNodesTaskRunningDataRule"/>
   </extensions>
 
   <extensions defaultExtensionNs="dev.turingcomplete.intellijjpsplugin">
     <jvmAction
-            implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.CreateJvmThreadDumpAction"/>
-    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.GetJvmInformationAction"/>
-    <jvmAction implementation="dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool.GarbageCollectorAction"/>
+            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.CreateJvmThreadDumpAction"/>
+    <jvmAction
+            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GetJvmInformationAction"/>
+    <jvmAction
+            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GarbageCollectorAction"/>
   </extensions>
 </idea-plugin>

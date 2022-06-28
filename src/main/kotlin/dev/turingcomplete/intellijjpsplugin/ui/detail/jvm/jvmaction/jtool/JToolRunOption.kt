@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
@@ -9,10 +9,14 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.DumbAwareAction
+import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.ui.Messages
-import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesPanel
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionException
+import dev.turingcomplete.intellijjpsplugin.JpsPluginService
+import dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsService
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.getRequiredData
+import dev.turingcomplete.intellijjpsplugin.ui.JvmProcessesMainPanel
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionContext
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionException
 import java.nio.file.Path
 import javax.swing.Icon
 
@@ -26,15 +30,20 @@ abstract class JToolRunOption(optionTitle: String,
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   final override fun actionPerformed(e: AnActionEvent) {
-    val jvmActionContext = JvmActionContext.DATA_KEY.getData(e.dataContext)
-                           ?: throw IllegalStateException("Data context is missing required data key '${JvmActionContext.DATA_KEY.name}'.")
+    val jvmActionContext = getRequiredData(JvmActionContext.DATA_KEY, e.dataContext)
+
+    val jvmActionJdk = JpsSettingsService.getInstance().getJvmActionJdk()
+    if (jvmActionJdk == null) {
+      e.project?.getService(JpsPluginService::class.java)?.showSettings()
+      return
+    }
 
     val shouldContinue = beforeExecution(jvmActionContext)
     if (!shouldContinue) {
       return
     }
 
-    JToolActionTask(jvmActionContext, this, taskTitle(jvmActionContext)).queue()
+    JToolActionTask(jvmActionContext, this, taskTitle(jvmActionContext), jvmActionJdk).queue()
   }
 
   open fun getProcessAdapter(): ProcessAdapter? = null
@@ -54,16 +63,16 @@ abstract class JToolRunOption(optionTitle: String,
 
   private class JToolActionTask(private val jvmActionContext: JvmActionContext,
                                 private val jToolRunOption: JToolRunOption,
-                                private val taskTitle: String)
+                                private val taskTitle: String,
+                                private val jdk: Sdk)
     : Task.ConditionalModal(jvmActionContext.project, taskTitle, false, DEAF) {
 
     companion object {
-      private val LOG = Logger.getInstance(JavaProcessesPanel::class.java)
+      private val LOG = Logger.getInstance(JvmProcessesMainPanel::class.java)
       private const val TIMEOUT_MILLIS: Long = 30 * 1000
     }
 
     override fun run(indicator: ProgressIndicator) {
-      val jdk = jvmActionContext.jdk() ?: throw IllegalStateException("snh: No JDK selected. Task should not be accessible if not JDK was selected.")
       val jdkHomePath = jdk.homePath ?: throw JvmActionException("The selected JDK does not have a home path configured.")
 
       val (jTool, arguments) = jToolRunOption.createJToolCommand(jvmActionContext)

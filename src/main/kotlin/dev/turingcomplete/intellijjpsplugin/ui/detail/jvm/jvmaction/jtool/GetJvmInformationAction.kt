@@ -1,4 +1,4 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.jtool
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
@@ -9,10 +9,10 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmAction
-import dev.turingcomplete.intellijjpsplugin.ui.action.jvmaction.JvmActionContext
 import dev.turingcomplete.intellijjpsplugin.ui.common.*
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils.createLink
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmAction
+import dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmActionContext
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent

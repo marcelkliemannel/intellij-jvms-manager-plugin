@@ -1,14 +1,17 @@
-package dev.turingcomplete.intellijjpsplugin.ui.action
+package dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction
 
 import com.intellij.openapi.actionSystem.DataKey
+import com.intellij.openapi.project.Project
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 
-object ActionUtils {
+class JvmActionContext(val project: Project, val processNode: ProcessNode) {
+  // -- Companion Object -------------------------------------------------------------------------------------------- //
+
+  companion object {
+    val DATA_KEY: DataKey<JvmActionContext> = DataKey.create("dev.turingcomplete.intellijjpsplugin.jvmActionContext")
+  }
+
   // -- Properties -------------------------------------------------------------------------------------------------- //
-
-  val SELECTED_PROCESSES: DataKey<List<ProcessNode>> = DataKey.create("JavaProcessesPlugin.SelectedProcesses")
-  val SELECTED_PROCESS: DataKey<ProcessNode> = DataKey.create("JavaProcessesPlugin.SelectedProcess")
-
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
   // -- Private Methods --------------------------------------------------------------------------------------------- //

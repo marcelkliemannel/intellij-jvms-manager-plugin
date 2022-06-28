@@ -3,25 +3,27 @@ package dev.turingcomplete.intellijjpsplugin.ui.list
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.DefaultTreeTableExpander
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo
 import com.intellij.ui.treeStructure.treetable.TreeTable
 import com.intellij.util.ui.ColumnInfo
 import com.intellij.util.ui.tree.TreeUtil
+import dev.turingcomplete.intellijjpsplugin.JpsPluginService
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESS
-import dev.turingcomplete.intellijjpsplugin.ui.action.ActionUtils.SELECTED_PROCESSES
+import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDetails: (ProcessNode) -> Unit)
+class JvmProcessesTable(private val project: Project)
   : TreeTable(ListTreeTableModelOnColumns(DefaultMutableTreeNode(), createProcessesTableColumns())), DataProvider {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
@@ -45,7 +47,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
   init {
     setTreeCellRenderer(MyTreeTableCellRenderer())
 
-    addMouseListener(UiUtils.Table.createContextMenuMouseListener(this@JavaProcessesTable::class.qualifiedName!!) {
+    addMouseListener(UiUtils.Table.createContextMenuMouseListener(this@JvmProcessesTable::class.qualifiedName!!) {
       createContextMenuActions
     })
 
@@ -57,7 +59,18 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
         return@addListSelectionListener
       }
 
-      TreeUtil.getSelectedPathIfOne(tree)?.let { selectedPath -> showProcessNodeDetails(selectedPath.lastPathComponent as ProcessNode) }
+      // Using `it.firstIndex` or `it.lastIndex` as an indicator for the
+      // selected row does not work in any situation. If the row selection
+      // gets changed by the keyboard, the `firstIndex` may be the old row
+      // and the `lastIndex` one the new one. But we cannot distinguish this
+      // case  from a multi selection.
+      val selectedIndices = selectionModel.selectedIndices
+      if (selectedIndices.size == 1) {
+        tree.getPathForRow(selectedIndices[0])?.let { selectedPath ->
+          val selectedProcessNode = selectedPath.lastPathComponent as ProcessNode
+          project.getService(JpsPluginService::class.java).showProcessDetails(selectedProcessNode)
+        }
+      }
     }
 
     columnModel.getColumn(0).preferredWidth = 110
@@ -70,12 +83,17 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
     tree.showsRootHandles = true
     tree.isRootVisible = false
 
-    emptyText.text = "No Java processes found"
+    emptyText.apply {
+      appendLine("No processes found")
+      appendLine("Reload", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        project.getService(JpsPluginService::class.java)
+      }
+    }
   }
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  fun setJavaProcessNodes(jvmProcessNodes: List<JvmProcessNode>) {
+  fun setJvmProcessNodes(jvmProcessNodes: List<JvmProcessNode>) {
     val oldExpandedPaths = TreeUtil.collectExpandedPaths(tree)
 
     // It's important that we reuse the root node to make `restoreExpandedPaths`
@@ -91,8 +109,7 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
 
   override fun getData(dataId: String): Any? {
     return when {
-      SELECTED_PROCESSES.`is`(dataId) -> TreeUtil.collectSelectedPaths(this.tree).map { it.lastPathComponent }.filterIsInstance<ProcessNode>()
-      SELECTED_PROCESS.`is`(dataId) -> TreeUtil.getSelectedPathIfOne(tree)?.lastPathComponent
+      SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> TreeUtil.collectSelectedPaths(this.tree).map { it.lastPathComponent }.filterIsInstance<ProcessNode>()
       else -> null
     }
   }
@@ -101,9 +118,14 @@ class JavaProcessesTable(val collectProcesses: () -> Unit, val showProcessNodeDe
 
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
-      add(GracefullyTerminateProcessesAction().onFinished { collectProcesses() })
-      add(ForciblyTerminateProcessesAction().onFinished { collectProcesses() })
+      add(GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
+      add(ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
     }
+  }
+
+  fun processDetailsUpdated(processNodes: List<ProcessNode>) {
+    val treeModel = tableModel as ListTreeTableModelOnColumns
+    processNodes.forEach { treeModel.reload(it) }
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

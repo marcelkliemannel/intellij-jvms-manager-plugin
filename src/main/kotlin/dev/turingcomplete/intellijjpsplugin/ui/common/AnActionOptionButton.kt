@@ -6,7 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ui.OptionAction
 import com.intellij.ui.components.JBOptionButton
-import dev.turingcomplete.intellijjpsplugin.ui.JavaProcessesToolWindowFactory
+import dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory
 import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
@@ -33,7 +33,7 @@ class AnActionOptionButton(mainAction: AnAction, vararg additionalActions: AnAct
 
     override fun actionPerformed(e: ActionEvent?) {
       val context = DataManager.getInstance().getDataContext(component)
-      val event = AnActionEvent.createFromAnAction(action, null, "${JavaProcessesToolWindowFactory.PLACE_PREFIX}.jvmaction", context)
+      val event = AnActionEvent.createFromAnAction(action, null, "${JpsToolWindowFactory.TOOLBAR_PLACE_PREFIX}.jvmaction", context)
       ActionUtil.performActionDumbAwareWithCallbacks(action, event)
     }
   }
