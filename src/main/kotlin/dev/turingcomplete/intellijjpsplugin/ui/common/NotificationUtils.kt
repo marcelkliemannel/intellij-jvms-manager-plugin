@@ -17,7 +17,7 @@ object NotificationUtils {
 
     ApplicationManager.getApplication().invokeLater {
       val notification = NotificationGroupManager.getInstance()
-              .getNotificationGroup("JPS Plugin | Balloon")
+              .getNotificationGroup("JPS Messages")
               .createNotification(title, message, notificationType)
 
       actions.forEach { notification.addAction(it) }
@@ -29,7 +29,7 @@ object NotificationUtils {
   fun notifyOnToolWindow(message: String, project: Project?, notificationType: NotificationType = NotificationType.INFORMATION) {
     ApplicationManager.getApplication().invokeLater {
       NotificationGroupManager.getInstance()
-              .getNotificationGroup("JPS Plugin | Tool Window")
+              .getNotificationGroup("JPS Notifications")
               .createNotification(message, notificationType)
               .notify(project)
     }

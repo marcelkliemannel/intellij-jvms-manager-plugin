@@ -5,11 +5,10 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
-import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import javax.swing.Icon
 
 class ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
-  : TerminateProcessesAction<ForciblyTerminateProcessesAction>(collectJavaProcessesOnSuccess, SELECTED_PROCESSES_DATA_KEY) {
+  : TerminateProcessesAction<ForciblyTerminateProcessesAction>(collectJavaProcessesOnSuccess) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {

@@ -17,7 +17,6 @@ import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
-import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.GridBagConstraints
@@ -108,16 +107,18 @@ internal object UiUtils {
       }
     }
 
-    fun JLabel.formatCell(tree: JTree, isSelected: Boolean, isFocused: Boolean): JLabel {
-      this.foreground = UIUtil.getTreeForeground(isSelected, isFocused)
-      this.background = Color.CYAN
-      componentOrientation = tree.componentOrientation
-      font = tree.font
-      isEnabled = tree.isEnabled
+    fun JLabel.formatCell(table: JTable, isSelected: Boolean, isFocused: Boolean): JLabel {
+      this.foreground = UIUtil.getTableForeground(isSelected, isFocused)
+      this.background = UIUtil.getTableBackground(isSelected, isFocused)
+      componentOrientation = table.componentOrientation
+      font = table.font
+      isEnabled = table.isEnabled
       border = JBUI.Borders.empty(2, 3, 2, 3)
       return this
     }
   }
+
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 

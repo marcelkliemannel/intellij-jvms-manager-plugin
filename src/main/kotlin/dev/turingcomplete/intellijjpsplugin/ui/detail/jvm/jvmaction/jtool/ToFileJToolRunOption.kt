@@ -22,10 +22,12 @@ import kotlin.io.path.outputStream
 class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
                            private val defaultFileNamePrefix: String,
                            private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>)
-  : JToolRunOption("Run - Save Output to File", taskTitle, AllIcons.Actions.MenuSaveall) {
+  : JToolRunOption(OPTION_TITLE, taskTitle, AllIcons.Actions.MenuSaveall) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
+    const val OPTION_TITLE = "Run - Save Output to File"
+
     private val TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-SS")
   }
 

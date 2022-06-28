@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
+import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.ColoredTreeCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.DefaultTreeTableExpander
@@ -19,7 +20,9 @@ import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
+import dev.turingcomplete.intellijjpsplugin.ui.action.TotalResidentSetSizeAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
+import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
@@ -46,6 +49,7 @@ class JvmProcessesTable(private val project: Project)
 
   init {
     setTreeCellRenderer(MyTreeTableCellRenderer())
+    setDefaultRenderer(String::class.java, MyTableCellRenderer())
 
     addMouseListener(UiUtils.Table.createContextMenuMouseListener(this@JvmProcessesTable::class.qualifiedName!!) {
       createContextMenuActions
@@ -118,6 +122,8 @@ class JvmProcessesTable(private val project: Project)
 
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
+      add(TotalResidentSetSizeAction())
+      addSeparator()
       add(GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
       add(ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
     }
@@ -139,6 +145,13 @@ class JvmProcessesTable(private val project: Project)
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  private class MyTableCellRenderer : ColoredTableCellRenderer() {
+
+    override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+      append(value as String)
+    }
+  }
 
   private class MyTreeTableCellRenderer : ColoredTreeCellRenderer() {
 

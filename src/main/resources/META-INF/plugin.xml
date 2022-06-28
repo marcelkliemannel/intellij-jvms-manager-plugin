@@ -24,8 +24,8 @@
     <toolWindow id="JPS"
                 factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory"
                 anchor="bottom" canCloseContents="false" secondary="false"/>
-    <notificationGroup id="JPS Plugin | Balloon" displayType="BALLOON"/>
-    <notificationGroup id="JPS Plugin | Tool Window" displayType="TOOL_WINDOW" toolWindowId="JPS"/>
+    <notificationGroup id="JPS Messages" displayType="BALLOON"/>
+    <notificationGroup id="JPS Notifications" displayType="TOOL_WINDOW" toolWindowId="JPS"/>
 
     <getDataRule key="dev.turingcomplete.intellijjpsplugin.currentProcessDetails"
                  implementationClass="dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys$CurrentProcessDetailsDataRule"/>

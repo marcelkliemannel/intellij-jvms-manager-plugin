@@ -3,7 +3,6 @@ package dev.turingcomplete.intellijjpsplugin.ui.action
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -20,8 +19,7 @@ import dev.turingcomplete.intellijjpsplugin.ui.common.NotificationUtils
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
-abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val collectJavaProcessesOnSuccess: Boolean,
-                                                                         private val processNodesDataKey: DataKey<List<ProcessNode>>)
+abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val collectJavaProcessesOnSuccess: Boolean)
   : DumbAwareAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess), DumbAware {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -59,7 +57,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   abstract fun icon(): Icon
 
   protected fun getProcessNodes(dataContext: DataContext): List<ProcessNode> {
-    return CommonsDataKeys.getRequiredData(processNodesDataKey, dataContext)
+    return CommonsDataKeys.getRequiredData(CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY, dataContext)
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
