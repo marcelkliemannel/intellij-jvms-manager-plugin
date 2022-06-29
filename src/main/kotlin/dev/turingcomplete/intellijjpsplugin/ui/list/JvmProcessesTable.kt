@@ -87,15 +87,25 @@ class JvmProcessesTable(private val project: Project)
     tree.showsRootHandles = true
     tree.isRootVisible = false
 
-    emptyText.apply {
-      appendLine("No processes found")
-      appendLine("Reload", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        project.getService(JpsPluginService::class.java)
-      }
-    }
+    syncReloadingState(false)
   }
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+
+  fun syncReloadingState(isReloading: Boolean) {
+    isEnabled = !isReloading
+
+    emptyText.clear()
+    if (isReloading) {
+      emptyText.appendLine("Collecting JVM processes...")
+    }
+    else {
+      emptyText.appendLine("No JVM processes found")
+      emptyText.appendLine("Reload", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        project.getService(JpsPluginService::class.java).collectJavaProcesses()
+      }
+    }
+  }
 
   fun setJvmProcessNodes(jvmProcessNodes: List<JvmProcessNode>) {
     val oldExpandedPaths = TreeUtil.collectExpandedPaths(tree)

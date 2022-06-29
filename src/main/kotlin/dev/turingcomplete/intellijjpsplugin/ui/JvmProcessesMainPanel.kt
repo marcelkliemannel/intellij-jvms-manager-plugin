@@ -113,7 +113,7 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
 
     val onFinished: () -> Unit = {
       collectJvmProcessNodesTaskRunning = false
-      processesTable.isEnabled = true
+      processesTable.syncReloadingState(false)
       processNodeDetails?.setEnabled(true)
       jvmProcessNodeDetails?.setEnabled(true)
     }
@@ -125,7 +125,7 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
     }
 
     collectJvmProcessNodesTaskRunning = true
-    processesTable.isEnabled = false
+    processesTable.syncReloadingState(true)
     processNodeDetails?.setEnabled(false)
     jvmProcessNodeDetails?.setEnabled(false)
     CollectJvmProcessNodesTask(project, onSuccess, onFinished, onThrowable).queue()
