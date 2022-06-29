@@ -28,10 +28,10 @@ class ToStringJToolRunOption(optionTitle: String,
   override fun beforeExecution(jvmActionContext: JvmActionContext): Boolean {
     if (mayProduceHighMemoryResult()) {
       val shouldContinue = Messages.showYesNoDialog(jvmActionContext.project,
-                                                    "The output of the action may not be processable in-memory " +
-                                                    "and thus result in an \"Out of Memory\" error in IntelliJ. Consider " +
-                                                    "using the \"${ToFileJToolRunOption.OPTION_TITLE}\" option instead.\n\n" +
-                                                    "Should the action be executed?",
+                                                    "The output of the action may be too large to handle " +
+                                                    "in-memory and therefore could result in an \"Out Of Memory\" error " +
+                                                    "in IntelliJ. Consider using the \"${ToFileJToolRunOption.OPTION_TITLE}\" " +
+                                                    "option instead.\n\nShould the action be executed?",
                                                     taskTitle(jvmActionContext),
                                                     null)
       if (shouldContinue != Messages.YES) {

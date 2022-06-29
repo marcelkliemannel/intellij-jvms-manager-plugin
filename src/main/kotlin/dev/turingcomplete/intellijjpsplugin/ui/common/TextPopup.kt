@@ -52,7 +52,7 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
               .setMovable(true)
               .setModalContext(false)
               .setShowShadow(true)
-              .setShowBorder(false)
+              .setShowBorder(true)
               .setCancelKeyEnabled(true)
               .setCancelOnClickOutside(true)
               .setCancelOnOtherWindowOpen(false)

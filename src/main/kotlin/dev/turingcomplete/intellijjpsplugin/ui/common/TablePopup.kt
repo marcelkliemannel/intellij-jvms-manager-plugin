@@ -51,7 +51,7 @@ class TablePopup(data: Array<Array<String>>,
               .setMovable(true)
               .setModalContext(false)
               .setShowShadow(true)
-              .setShowBorder(false)
+              .setShowBorder(true)
               .setCancelKeyEnabled(true)
               .setCancelOnClickOutside(true)
               .setCancelOnOtherWindowOpen(false)

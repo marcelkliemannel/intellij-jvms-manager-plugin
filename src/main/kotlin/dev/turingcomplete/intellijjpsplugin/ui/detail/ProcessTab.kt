@@ -183,7 +183,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(affinityMaskLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
 
-    add(JBLabel(if (PlatformEnum.WINDOWS == OshiUtils.CURRENT_PLATFORM) "Minor:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+    add(JBLabel(if (PlatformEnum.WINDOWS == OshiUtils.CURRENT_PLATFORM) "Faults:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(minorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     if (PlatformEnum.WINDOWS != OshiUtils.CURRENT_PLATFORM) {
@@ -222,8 +222,10 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     rssLabel.text = StringUtil.formatFileSize(process.residentSetSize)
     vszLabel.text = StringUtil.formatFileSize(process.virtualSize)
 
-    userLabel.text = "${process.user} (${process.userID})"
-    groupLabel.text = "${process.group} (${process.groupID})"
+    userLabel.text = process.user.toString()
+    userLabel.toolTipText = "ID: ${process.userID}"
+    groupLabel.text = process.group.toString()
+    groupLabel.toolTipText = "ID: ${process.groupID}"
 
     osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
     openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"

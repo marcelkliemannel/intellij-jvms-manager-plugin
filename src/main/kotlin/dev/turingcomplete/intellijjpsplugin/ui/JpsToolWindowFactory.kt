@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.actionSystem.DataProvider
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -44,19 +45,18 @@ class JpsToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
   override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
     Disposer.register(toolWindow.disposable, this)
 
-    val mainContent = ContentFactory.SERVICE.getInstance().createContent(JvmProcessesMainPanel(project), null, false)
-    mainContent.putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
-    mainContent.isCloseable = false
+    ApplicationManager.getApplication().invokeLater {
+      val mainContent = ContentFactory.SERVICE.getInstance().createContent(JvmProcessesMainPanel(project), null, false)
+      mainContent.putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
+      mainContent.isCloseable = false
 
-    toolWindow.apply {
-      component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "false")
-      contentManager.addContent(mainContent)
-
-      show { project.getService(JpsPluginService::class.java).collectJavaProcesses() }
+      toolWindow.contentManager.addContent(mainContent)
+      toolWindow.show { project.getService(JpsPluginService::class.java).collectJavaProcesses() }
     }
   }
 
   override fun init(toolWindow: ToolWindow) {
+    toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "false")
     toolWindow.stripeTitle = "JPS"
     toolWindow.isShowStripeButton = false
   }
