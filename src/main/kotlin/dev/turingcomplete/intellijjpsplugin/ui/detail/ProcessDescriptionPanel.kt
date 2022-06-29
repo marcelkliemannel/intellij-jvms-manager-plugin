@@ -17,14 +17,15 @@ import com.intellij.util.ui.UIUtil
 import dev.turingcomplete.intellijjpsplugin.JpsPluginService
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
 import dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys
-import dev.turingcomplete.intellijjpsplugin.ui.JvmProcessesMainPanel
 import dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory
+import dev.turingcomplete.intellijjpsplugin.ui.JvmProcessesMainPanel
 import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
 import dev.turingcomplete.intellijjpsplugin.ui.common.copyable
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideLeftInset
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
+import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 
@@ -44,7 +45,7 @@ class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescription
 
     border = UiUtils.EMPTY_BORDER
 
-    add(processDescriptionLabel, bag.nextLine().next().fillCellHorizontally().weightx(1.0))
+    add(processDescriptionLabel, bag.nextLine().next().fillCellHorizontally().anchor(GridBagConstraints.WEST).weightx(1.0))
     add(createProcessToolbar(this), bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP))
 
     warningLabelBag = bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP / 2).coverLine()

@@ -20,7 +20,7 @@
             parentId="tools"
             instance="dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
             id=" dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
-            displayName="Java Processes"/>
+            displayName="JPS"/>
     <toolWindow id="JPS"
                 factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory"
                 anchor="bottom" canCloseContents="false" secondary="false"/>

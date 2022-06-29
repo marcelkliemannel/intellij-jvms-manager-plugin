@@ -20,7 +20,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.JpsPluginService
-import dev.turingcomplete.intellijjpsplugin.process.CollectJavaProcessNodesTask
+import dev.turingcomplete.intellijjpsplugin.process.CollectJvmProcessNodesTask
 import dev.turingcomplete.intellijjpsplugin.process.FindProcessNodeTask
 import dev.turingcomplete.intellijjpsplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjpsplugin.process.ProcessNode
@@ -119,16 +119,16 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
     }
 
     val onThrowable: (Throwable) -> Unit = { error ->
-      val errorMessage = "Failed to collect Java processes: ${error.message}"
+      val errorMessage = "Failed to collect JVM processes: ${error.message}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Collecting Java Processes Failed")
+      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Collecting JVM Processes Failed")
     }
 
     collectJvmProcessNodesTaskRunning = true
     processesTable.isEnabled = false
     processNodeDetails?.setEnabled(false)
     jvmProcessNodeDetails?.setEnabled(false)
-    CollectJavaProcessNodesTask(project, onSuccess, onFinished, onThrowable).queue()
+    CollectJvmProcessNodesTask(project, onSuccess, onFinished, onThrowable).queue()
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

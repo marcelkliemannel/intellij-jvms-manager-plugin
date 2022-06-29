@@ -23,7 +23,9 @@ class JvmMonitoringAction : JvmAction("Monitoring") {
     val bag = UiUtils.createDefaultGridBag()
 
     add(AnActionOptionButton(createStartJConsoleRunOption()), bag.nextLine().next())
-    add(UiUtils.createContextHelpLabel("Starts a graphical interface to monitor and manage Java virtual machines."), bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
+    add(UiUtils.createContextHelpLabel("<html>Starts a graphical interface to monitor and manage Java virtual " +
+                                       "machines.<br>May have a medium performance impact on the JVM.</html>"),
+        bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
 
     // Stretch panel horizontally
     add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())

@@ -28,16 +28,16 @@ import oshi.software.os.OperatingSystem.ProcessSorting
  * at least until Oshi version 6, is that each of these methods first retrieves
  * all processes and then filters out only the desired ones.)
  */
-class CollectJavaProcessNodesTask(project: Project?,
-                                  private val onSuccess: (List<JvmProcessNode>) -> Unit,
-                                  private val onFinished: () -> Unit,
-                                  private val onThrowable: (Throwable) -> Unit)
-  : Task.Backgroundable(project, "Collecting Java processes information") {
+class CollectJvmProcessNodesTask(project: Project?,
+                                 private val onSuccess: (List<JvmProcessNode>) -> Unit,
+                                 private val onFinished: () -> Unit,
+                                 private val onThrowable: (Throwable) -> Unit)
+  : Task.Backgroundable(project, "Collecting JVM processes") {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-    private val LOG = Logger.getInstance(CollectJavaProcessNodesTask::class.java)
+    private val LOG = Logger.getInstance(CollectJvmProcessNodesTask::class.java)
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
