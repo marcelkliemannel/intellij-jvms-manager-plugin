@@ -24,7 +24,7 @@ class JvmMonitoringAction : JvmAction("Monitoring") {
 
     add(AnActionOptionButton(createStartJConsoleRunOption()), bag.nextLine().next())
     add(UiUtils.createContextHelpLabel("<html>Starts a graphical interface to monitor and manage Java virtual " +
-                                       "machines.<br>May have a medium performance impact on the JVM.</html>"),
+                                       "machines.<br><br>May have a medium performance impact on the JVM.</html>"),
         bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
 
     // Stretch panel horizontally

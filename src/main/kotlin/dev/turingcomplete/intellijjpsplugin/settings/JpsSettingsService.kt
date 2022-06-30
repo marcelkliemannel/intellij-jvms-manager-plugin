@@ -26,6 +26,7 @@ class JpsSettingsService : PersistentStateComponent<JpsSettingsService> {
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
+  var collectJvmProcessesOnToolWindowOpen: Boolean = true
   var jvmActionsJdkName: String? = null
 
   override fun getState(): JpsSettingsService {

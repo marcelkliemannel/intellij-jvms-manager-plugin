@@ -42,7 +42,9 @@ class JvmProcessesTable(private val project: Project)
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val createContextMenuActions : ActionGroup by lazy { createContextMenuActions() }
+  private val createContextMenuActions: ActionGroup by lazy { createContextMenuActions() }
+  var setJvmProcessNodesCalledAtLeastOnce = false
+    private set
   val treeExpander = DefaultTreeTableExpander(this)
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
@@ -100,14 +102,15 @@ class JvmProcessesTable(private val project: Project)
       emptyText.appendLine("Collecting JVM processes...")
     }
     else {
-      emptyText.appendLine("No JVM processes found")
-      emptyText.appendLine("Reload", SimpleTextAttributes.LINK_ATTRIBUTES) {
+      emptyText.appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "JVM processes have not been collected yet" else "No JVM processes found")
+      emptyText.appendLine("Collect JVM Processes", SimpleTextAttributes.LINK_ATTRIBUTES) {
         project.getService(JpsPluginService::class.java).collectJavaProcesses()
       }
     }
   }
 
   fun setJvmProcessNodes(jvmProcessNodes: List<JvmProcessNode>) {
+    setJvmProcessNodesCalledAtLeastOnce = true
     val oldExpandedPaths = TreeUtil.collectExpandedPaths(tree)
 
     // It's important that we reuse the root node to make `restoreExpandedPaths`

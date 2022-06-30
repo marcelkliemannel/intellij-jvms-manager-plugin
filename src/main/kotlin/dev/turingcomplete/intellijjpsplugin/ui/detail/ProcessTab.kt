@@ -34,13 +34,13 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   private val pidLabel = JBLabel().copyable()
   private var parentProcessWrapper: BorderLayoutPanel = BorderLayoutPanel()
   private val vszLabel = JBLabel().copyable()
-  private val userLabel = JBLabel().copyable()
-  private val groupLabel = JBLabel().copyable()
+  private val userLabel = JBLabel() // Not copyable because of tooltip
+  private val groupLabel = JBLabel() // Not copyable because of tooltip
   private val openFilesLabel = JBLabel().copyable()
   private val readLabel = JBLabel().copyable()
   private val writtenLabel = JBLabel().copyable()
   private val stateLabel = JBLabel().copyable()
-  private val priorityLabel = JBLabel().copyable()
+  private val priorityLabel = JBLabel() // Not copyable because of tooltip
   private val startTimeLabel = JBLabel().copyable()
   private val upTimeLabel = JBLabel().copyable()
   private val userTimeLabel = JBLabel().copyable()

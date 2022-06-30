@@ -11,10 +11,12 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
 import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.content.ContentFactory
 import com.intellij.util.castSafelyTo
 import dev.turingcomplete.intellijjpsplugin.JpsPluginService
+import dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsService
 
 class JpsToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -31,7 +33,7 @@ class JpsToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
       return if (toolWindowContentComponent is DataProvider) toolWindowContentComponent.getData(dataKey.name) else null
     }
 
-    fun getJavaProcessesMainPanel(project: Project): JvmProcessesMainPanel? {
+    fun getJvmProcessesMainPanel(project: Project): JvmProcessesMainPanel? {
       val jpsToolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return null
       val toolWindowContentComponent = jpsToolWindow.contentManager.selectedContent?.component
       return if (toolWindowContentComponent is JvmProcessesMainPanel) toolWindowContentComponent else null
@@ -46,13 +48,23 @@ class JpsToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
     Disposer.register(toolWindow.disposable, this)
 
     ApplicationManager.getApplication().invokeLater {
-      val mainContent = ContentFactory.SERVICE.getInstance().createContent(JvmProcessesMainPanel(project), null, false)
-      mainContent.putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
-      mainContent.isCloseable = false
-
-      toolWindow.contentManager.addContent(mainContent)
-      toolWindow.show { project.getService(JpsPluginService::class.java).collectJavaProcesses() }
+      ContentFactory.SERVICE.getInstance().createContent(JvmProcessesMainPanel(project), null, false).apply {
+        putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
+        isCloseable = false
+        toolWindow.contentManager.addContent(this)
+      }
     }
+
+    project.messageBus.connect(toolWindow.disposable).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
+
+      override fun toolWindowShown(toolWindow: ToolWindow) {
+        if (!JpsSettingsService.getInstance().collectJvmProcessesOnToolWindowOpen) {
+          return
+        }
+
+        project.getService(JpsPluginService::class.java).collectJavaProcesses(true)
+      }
+    })
   }
 
   override fun init(toolWindow: ToolWindow) {

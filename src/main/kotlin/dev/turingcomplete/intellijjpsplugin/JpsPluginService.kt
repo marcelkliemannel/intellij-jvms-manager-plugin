@@ -15,15 +15,15 @@ class JpsPluginService(val project: Project) {
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   fun processDetailsUpdated(processNodes: List<ProcessNode>) {
-    JpsToolWindowFactory.getJavaProcessesMainPanel(project)?.processDetailsUpdated(processNodes)
+    JpsToolWindowFactory.getJvmProcessesMainPanel(project)?.processDetailsUpdated(processNodes)
   }
 
   fun showProcessDetails(processNode: ProcessNode) {
-    JpsToolWindowFactory.getJavaProcessesMainPanel(project)?.showProcessDetails(processNode)
+    JpsToolWindowFactory.getJvmProcessesMainPanel(project)?.showProcessDetails(processNode)
   }
 
-  fun collectJavaProcesses() {
-    JpsToolWindowFactory.getJavaProcessesMainPanel(project)?.collectJvmProcesses()
+  fun collectJavaProcesses(onlyIfNoProcesses: Boolean = false) {
+    JpsToolWindowFactory.getJvmProcessesMainPanel(project)?.collectJvmProcesses(onlyIfNoProcesses)
   }
 
   fun showSettings() {

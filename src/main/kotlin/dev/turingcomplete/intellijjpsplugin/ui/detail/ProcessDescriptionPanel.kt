@@ -22,7 +22,6 @@ import dev.turingcomplete.intellijjpsplugin.ui.JvmProcessesMainPanel
 import dev.turingcomplete.intellijjpsplugin.ui.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.action.GracefullyTerminateProcessesAction
 import dev.turingcomplete.intellijjpsplugin.ui.common.UiUtils
-import dev.turingcomplete.intellijjpsplugin.ui.common.copyable
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideLeftInset
 import dev.turingcomplete.intellijjpsplugin.ui.common.overrideTopInset
 import java.awt.GridBagConstraints
@@ -33,7 +32,7 @@ class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescription
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val processDescriptionLabel = JBLabel().copyable()
+  private val processDescriptionLabel = JBLabel()
   private var warningLabelShown = false
   private val warningLabelBag : GridBag
   private val warningLabel = JBLabel(AllIcons.General.Warning)

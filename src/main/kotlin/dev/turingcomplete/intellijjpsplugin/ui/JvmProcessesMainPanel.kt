@@ -17,7 +17,6 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.ui.JBSplitter
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjpsplugin.JpsPluginService
 import dev.turingcomplete.intellijjpsplugin.process.CollectJvmProcessNodesTask
@@ -40,7 +39,7 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
     private val LOG = Logger.getInstance(JvmProcessesMainPanel::class.java)
 
     private val NO_PROCESS_SELECTED_COMPONENT = BorderLayoutPanel().apply {
-      addToCenter(JBLabel("No process selected", UIUtil.ComponentStyle.REGULAR, UIUtil.FontColor.BRIGHTER).apply {
+      addToCenter(JBLabel("Select a process to see more details here").apply {
         horizontalAlignment = SwingConstants.CENTER
       })
     }
@@ -49,7 +48,7 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private var collectJvmProcessNodesTaskRunning = false
-  private var contentSplitter = JBSplitter(0.72f)
+  private var contentSplitter = JBSplitter(0.70f)
   private val processesTable = JvmProcessesTable(project)
   private var processNodeDetails: ProcessNodeDetails<ProcessNode>? = null
   private var jvmProcessNodeDetails: JvmProcessNodeDetails? = null
@@ -102,8 +101,12 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
     }
   }
 
-  fun collectJvmProcesses() {
+  fun collectJvmProcesses(onlyIfNoProcesses: Boolean) {
     if (collectJvmProcessNodesTaskRunning) {
+      return
+    }
+
+    if (onlyIfNoProcesses && !processesTable.isEmpty) {
       return
     }
 
@@ -195,7 +198,7 @@ class JvmProcessesMainPanel(private val project: Project) : SimpleToolWindowPane
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  class ReloadJvmProcessesAction : DumbAwareAction("Reload", null, AllIcons.Actions.Refresh) {
+  class ReloadJvmProcessesAction : DumbAwareAction("Collect JVM Processes", null, AllIcons.Actions.Refresh) {
 
     override fun update(e: AnActionEvent) {
       e.presentation.isEnabled = !getRequiredData(COLLECT_JVM_PROCESS_NODES_TASK_RUNNING, e.dataContext)
