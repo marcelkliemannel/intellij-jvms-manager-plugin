@@ -1,5 +1,5 @@
 <idea-plugin>
-  <id>dev.turingcomplete.intellijjpsplugin</id>
+  <id>dev.turingcomplete.intellijjvmsmanagerplugin</id>
   <name>Java Processes</name>
   <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
 
@@ -10,37 +10,38 @@
 
   <extensionPoints>
     <extensionPoint name="jvmAction"
-                    interface="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.JvmAction"/>
+                    interface="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmAction"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
     <applicationService
-            serviceImplementation="dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsService"/>
+            serviceImplementation="dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsService"/>
     <applicationConfigurable
             parentId="tools"
-            instance="dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
-            id=" dev.turingcomplete.intellijjpsplugin.settings.JpsSettingsConfigurable"
-            displayName="JPS"/>
-    <toolWindow id="JPS"
-                factoryClass="dev.turingcomplete.intellijjpsplugin.ui.JpsToolWindowFactory"
-                anchor="bottom" canCloseContents="false" secondary="false"/>
-    <notificationGroup id="JPS Messages" displayType="BALLOON"/>
-    <notificationGroup id="JPS Notifications" displayType="TOOL_WINDOW" toolWindowId="JPS"/>
+            instance="dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsConfigurable"
+            id=" dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsConfigurable"
+            displayName="JVMs Manager"/>
+    <toolWindow id="JVMsManager"
+                factoryClass="dev.turingcomplete.intellijjvmsmanagerplugin.ui.JvmsManagerToolWindowFactory"
+                anchor="bottom" canCloseContents="false" secondary="false"
+                icon="/dev/turingcomplete/intellijjvmsmanagerplugin/icons/toolwindow.svg"/>
+    <notificationGroup id="JVMs Manager Messages" displayType="BALLOON"/>
+    <notificationGroup id="JVMs Manager Notifications" displayType="TOOL_WINDOW" toolWindowId="JVMsManager"/>
 
-    <getDataRule key="dev.turingcomplete.intellijjpsplugin.currentProcessDetails"
-                 implementationClass="dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys$CurrentProcessDetailsDataRule"/>
-    <getDataRule key="dev.turingcomplete.intellijjpsplugin.collectJvmProcessNodesTaskRunning"
-                 implementationClass="dev.turingcomplete.intellijjpsplugin.ui.CommonsDataKeys$CollectJvmProcessNodesTaskRunningDataRule"/>
+    <getDataRule key="dev.turingcomplete.intellijjvmsmanagerplugin.currentProcessDetails"
+                 implementationClass="dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys$CurrentProcessDetailsDataRule"/>
+    <getDataRule key="dev.turingcomplete.intellijjvmsmanagerplugin.collectJvmProcessNodesTaskRunning"
+                 implementationClass="dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys$CollectJvmProcessNodesTaskRunningDataRule"/>
   </extensions>
 
-  <extensions defaultExtensionNs="dev.turingcomplete.intellijjpsplugin">
+  <extensions defaultExtensionNs="dev.turingcomplete.intellijjvmsmanagerplugin">
     <jvmAction
-            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.CreateJvmThreadDumpAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.CreateJvmThreadDumpAction"/>
     <jvmAction
-            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GetJvmInformationAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.GetJvmInformationAction"/>
     <jvmAction
-            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.GarbageCollectorAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.GarbageCollectorAction"/>
     <jvmAction
-            implementation="dev.turingcomplete.intellijjpsplugin.ui.detail.jvm.jvmaction.jtool.JvmMonitoringAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.JvmMonitoringAction"/>
   </extensions>
 </idea-plugin>

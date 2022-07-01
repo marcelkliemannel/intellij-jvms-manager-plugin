@@ -1,2 +1,2 @@
-rootProject.name = "intellij-jps-plugin"
+rootProject.name = "intellij-jvms-manager-plugin"
 
