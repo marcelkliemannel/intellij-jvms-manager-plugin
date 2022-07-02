@@ -1,11 +1,29 @@
 <idea-plugin>
   <id>dev.turingcomplete.intellijjvmsmanagerplugin</id>
-  <name>Java Processes</name>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <name>JVMs Manager</name>
+  <vendor email="dev@marcelkliemannel.com" url="https://marcelkliemannel.com/projects/intellij-jvms-manager-plugin">
+    Marcel Kliemannel
+  </vendor>
 
   <description><![CDATA[
-    Enter short description for your plugin here.<br>
-    <em>most HTML tags may be used</em>
+<p>This IntelliJ plugin provides a task-manager-like tool window to monitor and manage Java Virtual Machines.</p>
+
+<p>The tool window is available via <em>View | Tool Windows | JVMs</em> and will be shown by default in the left bottom of IntelliJ.</p>
+
+
+<h2>Features</h2>
+
+<p>(Please take a look at the <a href="https://github.com/marcelkliemannel/intellij-jvms-manager-plugin">README.md</a> to get a more detailed description and screenshots.)</p>
+
+<ul>
+  <li>The main part of the tool window is a tree table that lists all running JVM processes and their child processes.</li>
+  <li>For each process, the tool window provides a detailed information overview. This includes the system properties for JVMs, command line, environment variables, up time, etc.</li>
+  <li>There is an easy-to-use UI to access detailed information about any running JVM process, like getting a thread dump, version, classloader hierarchy, and the heap space.</li>
+  <li>In addition, it provides a one-click solution to trigger the garbage collection and start the OpenJDK JVM monitoring tool.</li>
+</ul>
+
+
+<p>(<a href="https://www.svgrepo.com">Plugin icon by svgrepo.com</a>)</p>
     ]]></description>
 
   <extensionPoints>

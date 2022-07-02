@@ -21,10 +21,6 @@ dependencies {
   implementation("com.github.oshi:oshi-core:6.1.6") {
     exclude(group = "org.slf4j", module = "slf4j-api")
   }
-  val jUnitVersion = "5.7.1"
-  testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 intellij {
@@ -32,8 +28,7 @@ intellij {
   type.set(properties("platformType"))
   downloadSources.set(properties("platformDownloadSources").toBoolean())
   updateSinceUntilBuild.set(true)
-  plugins.set(listOf("com.intellij.java"))
- // plugins.set(properties("platformPlugins").split(",").map(String::trim).filter(String::isNotEmpty))
+  plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
 }
 
 changelog {
