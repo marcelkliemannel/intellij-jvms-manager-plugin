@@ -4,7 +4,7 @@
 
 This IntelliJ plugin provides a task-manager-like tool window to monitor and manage Java Virtual Machines.
 
-[**It's available on the official IntelliJ plugin marketplace**](TODO).
+[**It's available on the official IntelliJ plugin marketplace**](https://plugins.jetbrains.com/plugin/19464-jvms-manager).
 
 The tool window is available via *View | Tool Windows | JVMs* and will be shown by default in the left bottom of IntelliJ.
 
