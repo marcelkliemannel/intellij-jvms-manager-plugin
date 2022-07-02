@@ -26,6 +26,7 @@
 <p>(<a href="https://www.svgrepo.com">Plugin icon by svgrepo.com</a>)</p>
     ]]></description>
 
+  <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.java</depends>
 
   <extensionPoints>
