@@ -26,6 +26,8 @@
 <p>(<a href="https://www.svgrepo.com">Plugin icon by svgrepo.com</a>)</p>
     ]]></description>
 
+  <depends>com.intellij.java</depends>
+
   <extensionPoints>
     <extensionPoint name="jvmAction"
                     interface="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmAction"/>

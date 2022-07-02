@@ -50,6 +50,20 @@ tasks {
     ideVersions.set(properties("pluginVerifierIdeVersions").split(",").map(String::trim).filter(String::isNotEmpty))
   }
 
+  publishPlugin {
+    dependsOn("patchChangelog")
+    token.set(project.provider { properties("jetbrains.marketplace.token") })
+    channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+  }
+
+  signPlugin {
+    val jetbrainsDir = File(System.getProperty("user.home"), ".jetbrains")
+    certificateChain.set(project.provider { File(jetbrainsDir, "plugin-sign-chain.crt").readText() })
+    privateKey.set(project.provider { File(jetbrainsDir, "plugin-sign-private-key.pem").readText() })
+
+    password.set(project.provider { properties("jetbrains.sign-plugin.password") })
+  }
+
   withType<KotlinCompile> {
     kotlinOptions {
       freeCompilerArgs = listOf("-Xjsr305=strict")
