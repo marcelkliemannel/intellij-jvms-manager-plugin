@@ -4,7 +4,7 @@ import com.intellij.openapi.options.Configurable
 import java.util.*
 import javax.swing.JComponent
 
-internal class JvmsManagerSettingsConfigurable : Configurable {
+class JvmsManagerSettingsConfigurable : Configurable {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //

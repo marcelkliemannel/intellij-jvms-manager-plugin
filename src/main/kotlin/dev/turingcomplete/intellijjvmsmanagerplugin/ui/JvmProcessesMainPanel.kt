@@ -50,7 +50,7 @@ class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private var collectJvmProcessNodesTaskRunning = false
-  private var contentSplitter = JBSplitter(0.70f)
+  private var contentSplitter = JBSplitter(0.75f)
   private val processesTable = JvmProcessesTable(project)
   private var processNodeDetails: ProcessNodeDetails<ProcessNode>? = null
   private var jvmProcessNodeDetails: JvmProcessNodeDetails? = null

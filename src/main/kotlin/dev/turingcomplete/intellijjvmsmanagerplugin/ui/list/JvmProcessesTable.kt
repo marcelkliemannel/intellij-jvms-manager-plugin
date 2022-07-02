@@ -20,6 +20,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.ForciblyTerminateProcessesAction
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.GracefullyTerminateProcessesAction
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.ResidentSetSizeIncludingChildrenAction
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.TotalResidentSetSizeAction
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils
 import javax.swing.JTable
@@ -102,7 +103,7 @@ class JvmProcessesTable(private val project: Project)
       emptyText.appendLine("Collecting JVM processes...")
     }
     else {
-      emptyText.appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "JVM processes have not been collected yet" else "No JVM processes found")
+      emptyText.appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "No JVM processes found" else "JVM processes have not been collected yet")
       emptyText.appendLine("Collect JVM Processes", SimpleTextAttributes.LINK_ATTRIBUTES) {
         project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
       }
@@ -136,6 +137,7 @@ class JvmProcessesTable(private val project: Project)
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
       add(TotalResidentSetSizeAction())
+      add(ResidentSetSizeIncludingChildrenAction())
       addSeparator()
       add(GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
       add(ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess = true))
@@ -175,13 +177,13 @@ class JvmProcessesTable(private val project: Project)
 
       icon = value.processType.icon
       append(value.process.processID.toString())
-      toolTipText = value.processType.description
+      toolTipText = value.processType.description?.let { "$it (${value.process.name})" }
 
       val isJavaProcess = value is JvmProcessNode
       if (!isJavaProcess) {
         append("*")
         if (toolTipText?.isNotBlank() == true) {
-          toolTipText = "$toolTipText (*non-Java process)"
+          toolTipText = "$toolTipText *Non-Java process"
         }
         toolTipText = "*Non-Java process"
       }
