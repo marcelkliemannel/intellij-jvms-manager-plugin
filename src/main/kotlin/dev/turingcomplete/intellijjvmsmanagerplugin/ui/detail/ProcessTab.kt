@@ -3,6 +3,7 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
@@ -21,6 +22,7 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.border.EmptyBorder
+import javax.swing.event.HyperlinkEvent
 
 open class ProcessTab<T : ProcessNode>(protected val project: Project,
                                        protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
@@ -74,15 +76,15 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       addAdditionalMainInformation(bag)
 
       add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path, hyperlinkLabel) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path ?: "", hyperlinkLabel) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine, hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
+        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine ?: "", hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Open working directory").apply {
-        addHyperlinkListener { BrowserUtil.browse(processNode.process.currentWorkingDirectory) }
+        addHyperlinkListener(createOpenWorkingDirectoryListener())
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
       add(HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
@@ -106,6 +108,18 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     override fun getData(dataId: String) : Any? = when {
       CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> listOf<ProcessNode>(processNode)
       else -> null
+    }
+  }
+
+  private fun createOpenWorkingDirectoryListener(): (e: HyperlinkEvent) -> Unit = {
+    val currentWorkingDirectory = processNode.process.currentWorkingDirectory
+    if (currentWorkingDirectory == null) {
+      Messages.showErrorDialog(project,
+                               "The working directory of this process is unknown.",
+                               "Open Working Directory Failed")
+    }
+    else {
+      BrowserUtil.browse(currentWorkingDirectory)
     }
   }
 
@@ -222,9 +236,9 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     rssLabel.text = StringUtil.formatFileSize(process.residentSetSize)
     vszLabel.text = StringUtil.formatFileSize(process.virtualSize)
 
-    userLabel.text = process.user.toString()
+    userLabel.text = process.user?.toString() ?: "Unknown"
     userLabel.toolTipText = "ID: ${process.userID}"
-    groupLabel.text = process.group.toString()
+    groupLabel.text = process.group?.toString() ?: "Unknown"
     groupLabel.toolTipText = "ID: ${process.groupID}"
 
     osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
