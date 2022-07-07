@@ -73,7 +73,6 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
     
     toolWindow.component.putClientProperty(ToolWindowContentUi.HIDE_ID_LABEL, "false")
     toolWindow.stripeTitle = "JVMs"
-    toolWindow.isShowStripeButton = false
   }
 
   override fun dispose() {
