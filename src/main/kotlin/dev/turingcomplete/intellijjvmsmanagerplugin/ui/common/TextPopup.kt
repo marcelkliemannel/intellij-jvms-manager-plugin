@@ -13,7 +13,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils.createSimp
 import java.awt.Dimension
 import javax.swing.JComponent
 
-class TextPopup private constructor(content: String, softWrap: Boolean, private val breakCommandSupported: Boolean, breakCommand: Boolean)
+class TextPopup private constructor(content: String, softWrap: Boolean, private val breakCommandSupported: Boolean, breakCommand: Boolean, wide: Boolean)
   : SimpleToolWindowPanel(false, true) {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
@@ -25,9 +25,10 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
                   target: JComponent,
                   softWrap: Boolean = true,
                   breakCommandSupported: Boolean = false,
-                  breakCommand: Boolean = false) {
+                  breakCommand: Boolean = false,
+                  wide: Boolean = false) {
 
-      create(content, softWrap, breakCommandSupported, breakCommand, title).showAbove(target)
+      create(content, softWrap, breakCommandSupported, breakCommand, title, wide).showAbove(target)
     }
 
     fun showCenteredInCurrentWindow(title: String,
@@ -35,13 +36,14 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
                                     project: Project,
                                     softWrap: Boolean = true,
                                     breakCommandSupported: Boolean = false,
-                                    breakCommand: Boolean = false) {
+                                    breakCommand: Boolean = false,
+                                    wide: Boolean = false) {
 
-      create(content, softWrap, breakCommandSupported, breakCommand, title).showCenteredInCurrentWindow(project)
+      create(content, softWrap, breakCommandSupported, breakCommand, title, wide).showCenteredInCurrentWindow(project)
     }
 
-    private fun create(content: String, softWrap: Boolean, breakCommandSupported: Boolean, breakCommand: Boolean, title: String): JBPopup {
-      val textPopup = TextPopup(content, softWrap, breakCommandSupported, breakCommand)
+    private fun create(content: String, softWrap: Boolean, breakCommandSupported: Boolean, breakCommand: Boolean, title: String, wide: Boolean): JBPopup {
+      val textPopup = TextPopup(content, softWrap, breakCommandSupported, breakCommand, wide)
 
       return JBPopupFactory.getInstance()
               .createComponentPopupBuilder(textPopup, textPopup)
@@ -70,10 +72,13 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
     toolbar = createPopupToolbar()
 
     textAreaPanel = UiUtils.Panel.TextAreaPanel(content, softWrap, breakCommand).apply {
-      val (width, height) = when {
+      var (width, height) = when {
         content.length < 100 -> Pair(500, 100)
         content.length < 400 -> Pair(600, 300)
         else -> Pair(700, 400)
+      }
+      if (wide) {
+        width += 200
       }
       preferredSize = Dimension(width, height)
     }

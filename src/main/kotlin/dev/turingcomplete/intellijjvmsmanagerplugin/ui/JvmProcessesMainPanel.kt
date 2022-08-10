@@ -104,12 +104,8 @@ class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : 
     }
   }
 
-  fun collectJvmProcesses(onlyIfNoProcesses: Boolean) {
+  fun collectJvmProcesses() {
     if (collectJvmProcessNodesTaskRunning) {
-      return
-    }
-
-    if (onlyIfNoProcesses && !processesTable.isEmpty) {
       return
     }
 

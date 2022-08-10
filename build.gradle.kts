@@ -4,8 +4,8 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   java
-  kotlin("jvm") version "1.5.10"
-  id("org.jetbrains.intellij") version "1.6.0"
+  kotlin("jvm") version "1.7.10"
+  id("org.jetbrains.intellij") version "1.8.0"
   id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -18,9 +18,18 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.oshi:oshi-core:6.1.6") {
+  implementation("com.github.oshi:oshi-core:6.2.2") {
     exclude(group = "org.slf4j", module = "slf4j-api")
   }
+
+  testImplementation("org.mockito:mockito-core:4.6.1")
+  testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+}
+
+tasks.withType<Test> {
+  useJUnitPlatform()
 }
 
 intellij {

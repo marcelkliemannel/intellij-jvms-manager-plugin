@@ -12,7 +12,10 @@ enum class ProcessType(val description: String?, private val loadIcon: (() -> Ic
 
   INTELLIJ_IDEA("IntelliJ IDEA", "intellij.svg"),
   INTELLIJ_IDEA_FSNOTIFIER("IntelliJ IDEA File Watcher", "intellij.svg", "https://github.com/int128/idea-fsnotifier-wsl"),
+  INTELLIJ_IDEA_COMPILER_PROCESS("IntelliJ IDEA Compiler Process", "intellij.svg"),
   GRADLE_DAEMON("Gradle Daemon", "gradle.svg", "https://docs.gradle.org/current/userguide/gradle_daemon.html"),
+  GRADLE_WORKER("Gradle Worker", "gradle.svg", "https://docs.gradle.org/current/userguide/worker_api.html"),
+  GRADLE_WRAPPER("Gradle Wrapper", "gradle.svg", "https://docs.gradle.org/current/userguide/gradle_wrapper.html"),
   KOTLIN_COMPILE_DAEMON("Kotlin Compile Daemon", "kotlin.svg"),
   MAVEN_WRAPPER("Maven Wrapper", "maven.svg", "https://maven.apache.org/wrapper/"),
   GIT("Git", "git.svg", "https://git-scm.com/docs"),
@@ -30,7 +33,10 @@ enum class ProcessType(val description: String?, private val loadIcon: (() -> Ic
     fun determine(process: OSProcess, vmDescriptor: VirtualMachineDescriptor?): ProcessType {
       return processNameToType[process.name] ?: when {
         process.commandLine?.contains("com.intellij.idea.Main") == true -> INTELLIJ_IDEA
+        process.commandLine?.contains("org.jetbrains.jps.cmdline.Launcher") == true -> INTELLIJ_IDEA_COMPILER_PROCESS
         process.commandLine?.contains("org.gradle.launcher.daemon.bootstrap.GradleDaemon") == true -> GRADLE_DAEMON
+        process.commandLine?.contains("worker.org.gradle.process.internal.worker.GradleWorkerMain") == true -> GRADLE_WORKER
+        process.commandLine?.contains("org.gradle.wrapper.GradleWrapperMain") == true -> GRADLE_WRAPPER
         process.commandLine?.contains("org.jetbrains.kotlin.daemon.KotlinCompileDaemon") == true -> KOTLIN_COMPILE_DAEMON
         process.commandLine?.contains("org.apache.maven.wrapper.MavenWrapperMain") == true -> MAVEN_WRAPPER
         process.name == "java" || vmDescriptor != null -> JAVA
