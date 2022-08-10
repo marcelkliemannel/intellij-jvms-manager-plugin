@@ -181,15 +181,15 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(openFilesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-    if (isPlatform(LINUX, MACOS, WINDOWS)) {
-      add(listOpenFilesHyperlinkLabel.apply {
-        setHyperlinkText("List open files")
-        addHyperlinkListener(createListOpenFilesHyperlinkListener())
-      }, bag.nextLine().next().weightx(1.0).coverLine(2).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    val openFilesComponent = if (isPlatform(LINUX, MACOS)) {
+      listOpenFilesHyperlinkLabel.apply { addHyperlinkListener(createListOpenFilesHyperlinkListener()) }
     }
+    else {
+      openFilesLabel
+    }
+    add(openFilesComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    if (isPlatform(LINUX, MACOS)) {
+    if (isPlatform(LINUX, MACOS, WINDOWS)) {
       add(listOpenPortsHyperlinkLabel.apply {
         setHyperlinkText("List open ports")
         addHyperlinkListener(createListOpenPortsHyperlinkListener())
@@ -253,6 +253,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     val bytesWritten = process.bytesWritten
     writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
     openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
+    listOpenFilesHyperlinkLabel.setHyperlinkText(process.openFiles.takeIf { it < 0 }?.toString() ?: "List")
 
     bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
@@ -305,6 +306,8 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   }
 
   private fun createListOpenFilesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+    assert(isPlatform(LINUX, MACOS))
+
     val pid = processNode.process.processID.toString()
     val commandLine = GeneralCommandLine("lsof", "-p", pid)
     RunCommandTask(project, "Collecting open files", "Failed to collect open files of PID $pid", commandLine, { output ->
@@ -313,6 +316,8 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   }
 
   private fun createListOpenPortsHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+    assert(isPlatform(WINDOWS, LINUX, MACOS))
+
     val pid = processNode.process.processID.toString()
     val commandLine = when {
       isPlatform(WINDOWS) -> GeneralCommandLine("powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command", "get-nettcpconnection | where {(\$_.OwningProcess -eq ${pid})}")
