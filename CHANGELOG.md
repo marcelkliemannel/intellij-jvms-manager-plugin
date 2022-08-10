@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 ### Added
+- Add debug agent information
 
 ### Changed
 
