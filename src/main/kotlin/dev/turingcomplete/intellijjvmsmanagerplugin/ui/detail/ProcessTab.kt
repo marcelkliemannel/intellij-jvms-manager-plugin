@@ -13,13 +13,14 @@ import com.intellij.util.ui.GridBag
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.OshiUtils
+import dev.turingcomplete.intellijjvmsmanagerplugin.process.OshiUtils.isPlatform
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.stateDescription
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.RunCommandTask
 import org.apache.commons.io.FileUtils
-import oshi.PlatformEnum
+import oshi.PlatformEnum.*
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
@@ -40,10 +41,11 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   private val vszLabel = JBLabel().copyable()
   private val userLabel = JBLabel() // Not copyable because of tooltip
   private val groupLabel = JBLabel() // Not copyable because of tooltip
-  private val openFilesLabel = JBLabel().copyable()
-  private val collectOpenFilesHyperlinkLabel = HyperlinkLabel()
   private val readLabel = JBLabel().copyable()
   private val writtenLabel = JBLabel().copyable()
+  private val openFilesLabel = JBLabel().copyable()
+  private val listOpenFilesHyperlinkLabel = HyperlinkLabel()
+  private val listOpenPortsHyperlinkLabel = HyperlinkLabel()
   private val stateLabel = JBLabel().copyable()
   private val priorityLabel = JBLabel() // Not copyable because of tooltip
   private val startTimeLabel = JBLabel().copyable()
@@ -169,18 +171,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
 
     add(JBLabel("OS threads:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(osThreadsHyperlinkLabel.apply {
-      addHyperlinkListener {
-        val columnNames = arrayOf("ID", "Name", "State", "Priority", "Start Time", "Up Time")
-        val data = processNode.process.threadDetails.map {
-          arrayOf(it.threadId.toString(),
-                  it.name.ifBlank { "Unknown" },
-                  it.state.name,
-                  it.priority.toString(),
-                  DateFormatUtil.formatDateTime(it.startTime),
-                  StringUtil.formatDuration(it.upTime))
-        }.toTypedArray()
-        TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", osThreadsHyperlinkLabel, "\t")
-      }
+      addHyperlinkListener(createOsThreadsHyperlinkListener())
     }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     add(JBLabel("Read:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
@@ -190,19 +181,20 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    if (OshiUtils.CURRENT_PLATFORM == PlatformEnum.LINUX || OshiUtils.CURRENT_PLATFORM == PlatformEnum.MACOS) {
-      add(collectOpenFilesHyperlinkLabel.apply {
-        setHyperlinkText("List open file handles")
-        addHyperlinkListener {
-          val pid = processNode.process.processID.toString()
-          val commandLine = GeneralCommandLine("lsof", "-p", pid)
-          RunCommandTask(project, "Collecting open file handles", "Failed to collect open file handles of PID $pid", commandLine, { output ->
-            TextPopup.showCenteredInCurrentWindow("Open File Handles of PID $pid", output, project, false)
-          }).queue()
-        }
+    add(openFilesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+    if (isPlatform(LINUX, MACOS, WINDOWS)) {
+      add(listOpenFilesHyperlinkLabel.apply {
+        setHyperlinkText("List open files")
+        addHyperlinkListener(createListOpenFilesHyperlinkListener())
       }, bag.nextLine().next().weightx(1.0).coverLine(2).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
     }
 
+    if (isPlatform(LINUX, MACOS)) {
+      add(listOpenPortsHyperlinkLabel.apply {
+        setHyperlinkText("List open ports")
+        addHyperlinkListener(createListOpenPortsHyperlinkListener())
+      }, bag.nextLine().next().weightx(1.0).coverLine(2).fillCellHorizontally().overrideTopInset(UIUtil.LARGE_VGAP))
+    }
 
     add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(bitnessLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
@@ -211,10 +203,10 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(affinityMaskLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
 
-    add(JBLabel(if (PlatformEnum.WINDOWS == OshiUtils.CURRENT_PLATFORM) "Faults:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+    add(JBLabel(if (WINDOWS == OshiUtils.CURRENT_PLATFORM) "Faults:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(minorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    if (PlatformEnum.WINDOWS != OshiUtils.CURRENT_PLATFORM) {
+    if (WINDOWS != OshiUtils.CURRENT_PLATFORM) {
       add(JBLabel("Major faults:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
       add(majorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
@@ -266,7 +258,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
 
     minorFailsLabel.text = process.minorFaults.toString()
-    if (PlatformEnum.WINDOWS != OshiUtils.CURRENT_PLATFORM) {
+    if (WINDOWS != OshiUtils.CURRENT_PLATFORM) {
       majorFailsLabel.text = process.majorFaults.toString() // Included in minor faults
       contextSwitchesLabel.text = process.contextSwitches.toString()
     }
@@ -280,7 +272,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     val parentProcessId = processNode.process.parentProcessID
 
     // Oshi can't resolve macOS's `launchd` process
-    if (parentProcessId == 1 && PlatformEnum.MACOS == OshiUtils.CURRENT_PLATFORM) {
+    if (parentProcessId == 1 && MACOS == OshiUtils.CURRENT_PLATFORM) {
       return JBLabel("1 | launchd")
     }
 
@@ -297,6 +289,39 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     else {
       JBLabel("Unknown")
     }
+  }
+
+  private fun createOsThreadsHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+    val columnNames = arrayOf("ID", "Name", "State", "Priority", "Start Time", "Up Time")
+    val data = processNode.process.threadDetails.map {
+      arrayOf(it.threadId.toString(),
+              it.name.ifBlank { "Unknown" },
+              it.state.name,
+              it.priority.toString(),
+              DateFormatUtil.formatDateTime(it.startTime),
+              StringUtil.formatDuration(it.upTime))
+    }.toTypedArray()
+    TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", osThreadsHyperlinkLabel, "\t")
+  }
+
+  private fun createListOpenFilesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+    val pid = processNode.process.processID.toString()
+    val commandLine = GeneralCommandLine("lsof", "-p", pid)
+    RunCommandTask(project, "Collecting open files", "Failed to collect open files of PID $pid", commandLine, { output ->
+      TextPopup.showCenteredInCurrentWindow("Open Files of PID $pid", output, project, false)
+    }).queue()
+  }
+
+  private fun createListOpenPortsHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+    val pid = processNode.process.processID.toString()
+    val commandLine = when {
+      isPlatform(WINDOWS) -> GeneralCommandLine("powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command", "get-nettcpconnection | where {(\$_.OwningProcess -eq ${pid})}")
+      isPlatform(LINUX, MACOS) -> GeneralCommandLine("lsof", "-Pan", "-p", pid, "-i")
+      else -> throw IllegalStateException("snh: Platform not supported")
+    }
+    RunCommandTask(project, "Collecting open ports", "Failed to collect open ports of PID $pid", commandLine, { output ->
+      TextPopup.showCenteredInCurrentWindow("Open Ports of PID $pid", output, project, false)
+    }).queue()
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

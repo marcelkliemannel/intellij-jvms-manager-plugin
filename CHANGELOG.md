@@ -3,7 +3,8 @@
 ## [Unreleased]
 ### Added
 - Add debug agent information
-- Add open file handles command
+- Add list open files function
+- Add list open ports function
 
 ### Changed
 
