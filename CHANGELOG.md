@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Added
 - Add debug agent information
+- Add open file handles command
 
 ### Changed
 

@@ -85,6 +85,7 @@ abstract class JToolRunOption(optionTitle: String,
         commandLine.addParameter(it)
       }
 
+      LOG.info("Start command: " + commandLine.commandLineString)
       val processHandler = OSProcessHandler(commandLine)
 
       if (waitForTermination) {

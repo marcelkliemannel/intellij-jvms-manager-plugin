@@ -1,13 +1,12 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool
 
 import com.intellij.execution.process.ProcessAdapter
-import com.intellij.execution.process.ProcessEvent
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.util.Key
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.NotificationUtils
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.StringAppenderProcessAdapter
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.TextPopup
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionContext
 
@@ -73,25 +72,6 @@ class ToStringJToolRunOption(optionTitle: String,
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
-
-  class StringAppenderProcessAdapter : ProcessAdapter() {
-
-    private val output = StringBuilder()
-    private var exitCode = 0
-
-    override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
-      output.append(event.text)
-    }
-
-    override fun processTerminated(event: ProcessEvent) {
-      exitCode = event.exitCode
-    }
-
-    fun output(): String = output.toString()
-
-    fun exitCode(): Int = exitCode
-  }
-
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   private class ShowProcessActionOutput(val taskTitle: String,

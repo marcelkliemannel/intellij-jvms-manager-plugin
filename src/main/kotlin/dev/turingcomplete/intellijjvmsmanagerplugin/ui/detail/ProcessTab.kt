@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail
 
+import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.BrowserUtil
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
@@ -16,6 +17,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.stateDescription
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.RunCommandTask
 import org.apache.commons.io.FileUtils
 import oshi.PlatformEnum
 import java.awt.GridBagLayout
@@ -39,6 +41,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   private val userLabel = JBLabel() // Not copyable because of tooltip
   private val groupLabel = JBLabel() // Not copyable because of tooltip
   private val openFilesLabel = JBLabel().copyable()
+  private val collectOpenFilesHyperlinkLabel = HyperlinkLabel()
   private val readLabel = JBLabel().copyable()
   private val writtenLabel = JBLabel().copyable()
   private val stateLabel = JBLabel().copyable()
@@ -180,14 +183,25 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       }
     }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(openFilesLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
-
     add(JBLabel("Read:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(readLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+
+    add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    if (OshiUtils.CURRENT_PLATFORM == PlatformEnum.LINUX || OshiUtils.CURRENT_PLATFORM == PlatformEnum.MACOS) {
+      add(collectOpenFilesHyperlinkLabel.apply {
+        setHyperlinkText("List open file handles")
+        addHyperlinkListener {
+          val pid = processNode.process.processID.toString()
+          val commandLine = GeneralCommandLine("lsof", "-p", pid)
+          RunCommandTask(project, "Collecting open file handles", "Failed to collect open file handles of PID $pid", commandLine, { output ->
+            TextPopup.showCenteredInCurrentWindow("Open File Handles of PID $pid", output, project, false)
+          }).queue()
+        }
+      }, bag.nextLine().next().weightx(1.0).coverLine(2).fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    }
 
 
     add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
@@ -242,11 +256,11 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     groupLabel.toolTipText = "ID: ${process.groupID}"
 
     osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
-    openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
     val bytesRead = process.bytesRead
     readLabel.text = "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
     val bytesWritten = process.bytesWritten
     writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
+    openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
 
     bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
