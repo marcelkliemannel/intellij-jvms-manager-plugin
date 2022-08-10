@@ -8,9 +8,15 @@ import java.util.*
 
 class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) : ProcessNode(process) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
+
+  companion object {
+    private val DEBUG_AGENT_CL_PATTERN = Regex("-agentlib:jdwp=(?:|(.*,))address=(?<address>[^\\s,]+)")
+  }
+
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val entryPoint: EntryPoint? by lazy { determineEntryPoint() }
+  val debugAgentAddress: String? by lazy { determineDebugAgentAddress() }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -61,15 +67,19 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     val entryPointName = vmDisplayName.substringBefore(" ")
     return if (entryPointName.endsWith(".jar")) {
       val jarFileName = entryPointName.substringAfter("/")
-      EntryPoint("Entry Jar", jarFileName, entryPointName)
+      EntryPoint("Entry JAR", jarFileName, entryPointName)
     }
     else if (entryPointName.isNotBlank()) {
       val simpleName = entryPointName.substringAfterLast(".")
-      EntryPoint("Main Class", simpleName, entryPointName)
+      EntryPoint("Main class", simpleName, entryPointName)
     }
     else {
       null
     }
+  }
+
+  private fun determineDebugAgentAddress() : String? {
+    return DEBUG_AGENT_CL_PATTERN.find(process.commandLine)?.groups?.get("address")?.value
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

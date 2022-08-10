@@ -8,9 +8,7 @@ import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.TablePopup
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.TextPopup
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.overrideTopInset
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.ProcessTab
 import java.util.*
 import javax.swing.JPanel
@@ -21,15 +19,27 @@ class JvmProcessTab(project: Project,
                     initialProcessNode: JvmProcessNode)
   : ProcessTab<JvmProcessNode>(project, showParentProcessDetails, initialProcessNode, "JVM") {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
+
+  companion object {
+    private val UNKNOWN_JVM_ENTRY_POINT_LABEL = JBLabel("Unknown")
+  }
+
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  private val entryPointWrapper = BorderLayoutPanel()
+  private val jvmEntryPointDescriptionLabel = JBLabel()
+  private val jvmEntryPointValueWrapper = BorderLayoutPanel()
+  private val jvmDebugAgentAddressDescriptionLabel = JBLabel("Debug agent:")
+  private val jvmDebugAgentAddressValueLabel = JBLabel().copyable()
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   override fun JPanel.addAdditionalMainInformation(bag: GridBag) {
-    add(entryPointWrapper, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).weightx(1.0).fillCellHorizontally())
+    add(jvmEntryPointDescriptionLabel, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP))
+    add(jvmEntryPointValueWrapper, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.LARGE_VGAP).weightx(1.0).fillCellHorizontally())
+
+    add(jvmDebugAgentAddressDescriptionLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    add(jvmDebugAgentAddressValueLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
 
     add(HyperlinkLabel("Show system properties").also { hyperLinkLabel ->
       hyperLinkLabel.addHyperlinkListener(showSystemProperties(hyperLinkLabel))
@@ -41,15 +51,30 @@ class JvmProcessTab(project: Project,
   override fun processNodeUpdated() {
     super.processNodeUpdated()
 
-    entryPointWrapper.removeAll()
+    // Entry point
+    jvmEntryPointValueWrapper.removeAll()
     val entryPoint = processNode.entryPoint
     if (entryPoint != null) {
-      entryPointWrapper.addToCenter(HyperlinkLabel("${entryPoint.typeTitle}: ${entryPoint.shortName}").also { hyperLinkLabel ->
+      jvmEntryPointDescriptionLabel.text = "${entryPoint.typeTitle}:"
+      jvmEntryPointValueWrapper.addToCenter(HyperlinkLabel(entryPoint.shortName).also { hyperLinkLabel ->
         hyperLinkLabel.addHyperlinkListener(showEntryPointFullName({ entryPoint }, hyperLinkLabel))
       })
     }
     else {
-      entryPointWrapper.addToCenter(JBLabel("JVM entry point unknown"))
+      jvmEntryPointDescriptionLabel.text = "Entry point:"
+      jvmEntryPointValueWrapper.addToCenter(UNKNOWN_JVM_ENTRY_POINT_LABEL)
+    }
+
+    // Debugger port
+    val debugAgentAddress = processNode.debugAgentAddress
+    if (debugAgentAddress == null) {
+      jvmDebugAgentAddressDescriptionLabel.isVisible = false
+      jvmDebugAgentAddressValueLabel.isVisible = false
+    }
+    else {
+      jvmDebugAgentAddressDescriptionLabel.isVisible = true
+      jvmDebugAgentAddressValueLabel.isVisible = true
+      jvmDebugAgentAddressValueLabel.text = debugAgentAddress.toString()
     }
   }
 
