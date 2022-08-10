@@ -63,7 +63,7 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
           return
         }
 
-        project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses(true)
+        project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
       }
     })
   }

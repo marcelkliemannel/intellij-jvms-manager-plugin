@@ -22,8 +22,8 @@ class JvmsManagerPluginService(val project: Project) {
     JvmsManagerToolWindowFactory.getJvmProcessesMainPanel(project)?.showProcessDetails(processNode)
   }
 
-  fun collectJavaProcesses(onlyIfNoProcesses: Boolean = false) {
-    JvmsManagerToolWindowFactory.getJvmProcessesMainPanel(project)?.collectJvmProcesses(onlyIfNoProcesses)
+  fun collectJavaProcesses() {
+    JvmsManagerToolWindowFactory.getJvmProcessesMainPanel(project)?.collectJvmProcesses()
   }
 
   fun showSettings() {

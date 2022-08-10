@@ -7,6 +7,7 @@
 - Add list open ports function
 
 ### Changed
+- Collect processes during everytime the tool window gets opened
 
 ### Removed
 
