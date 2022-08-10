@@ -311,7 +311,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     val pid = processNode.process.processID.toString()
     val commandLine = GeneralCommandLine("lsof", "-p", pid)
     RunCommandTask(project, "Collecting open files", "Failed to collect open files of PID $pid", commandLine, { output ->
-      TextPopup.showCenteredInCurrentWindow("Open Files of PID $pid", output, project, false)
+      TextPopup.showCenteredInCurrentWindow("Open Files of PID $pid", output, project, softWrap = false, wide = true)
     }).queue()
   }
 
@@ -325,7 +325,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       else -> throw IllegalStateException("snh: Platform not supported")
     }
     RunCommandTask(project, "Collecting open ports", "Failed to collect open ports of PID $pid", commandLine, { output ->
-      TextPopup.showCenteredInCurrentWindow("Open Ports of PID $pid", output, project, false)
+      TextPopup.showCenteredInCurrentWindow("Open Ports of PID $pid", output, project, softWrap = false, wide = true)
     }).queue()
   }
 
