@@ -168,6 +168,8 @@ class JvmProcessesTable(private val project: Project)
     }
   }
 
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
   private class MyTreeTableCellRenderer : ColoredTreeCellRenderer() {
 
     override fun customizeCellRenderer(tree: JTree, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean) {

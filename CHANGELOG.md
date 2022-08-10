@@ -5,6 +5,7 @@
 - Add debug agent information
 - Add list open files function
 - Add list open ports function
+- Add more process name to icons mappings
 
 ### Changed
 - Collect processes during everytime the tool window gets opened
