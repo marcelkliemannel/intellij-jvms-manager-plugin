@@ -4,8 +4,8 @@ fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   java
-  kotlin("jvm") version "1.5.10"
-  id("org.jetbrains.intellij") version "1.6.0"
+  kotlin("jvm") version "1.7.10"
+  id("org.jetbrains.intellij") version "1.8.0"
   id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.oshi:oshi-core:6.1.6") {
+  implementation("com.github.oshi:oshi-core:6.2.2") {
     exclude(group = "org.slf4j", module = "slf4j-api")
   }
 

@@ -49,7 +49,7 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
 
     ApplicationManager.getApplication().invokeLater {
       val jvmProcessesMainPanel = JvmProcessesMainPanel(project, toolWindow.disposable)
-      ContentFactory.SERVICE.getInstance().createContent(jvmProcessesMainPanel, null, false).apply {
+      ContentFactory.getInstance().createContent(jvmProcessesMainPanel, null, false).apply {
         putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
         isCloseable = false
         toolWindow.contentManager.addContent(this)
