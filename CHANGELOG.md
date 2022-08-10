@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.1.0] - 2022-08-10
+### Added
 - Add debug agent information
 - Add list open files function
 - Add list open ports function
@@ -9,10 +18,6 @@
 
 ### Changed
 - Collect processes during everytime the tool window gets opened
-
-### Removed
-
-### Fixed
 
 ## [1.0.1] - 2022-07-07
 ### Fixed
