@@ -4,6 +4,7 @@
 ### Added
 
 ### Changed
+- Add more IntelliJ/JetBrains processes to the process type mapping
 
 ### Removed
 
