@@ -66,7 +66,7 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
 
     val entryPointName = vmDisplayName.substringBefore(" ")
     return if (entryPointName.endsWith(".jar")) {
-      val jarFileName = entryPointName.substringAfter("/")
+      val jarFileName = entryPointName.substringAfterLast("/")
       EntryPoint("Entry JAR", jarFileName, entryPointName)
     }
     else if (entryPointName.isNotBlank()) {

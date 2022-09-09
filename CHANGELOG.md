@@ -8,6 +8,7 @@
 ### Removed
 
 ### Fixed
+- Show only the JAR filename for the JVM entry point
 
 ## [1.1.0] - 2022-08-10
 ### Added
@@ -27,4 +28,3 @@
 ## [1.0.0] - 2022-07-02
 ### Added
 - Initial Release
-
