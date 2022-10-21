@@ -44,7 +44,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   private val readLabel = JBLabel().copyable()
   private val writtenLabel = JBLabel().copyable()
   private val openFilesLabel = JBLabel().copyable()
-  private val listOpenFilesHyperlinkLabel = HyperlinkLabel()
+  private val listOpenFileHandlesHyperlinkLabel = HyperlinkLabel()
   private val listOpenPortsHyperlinkLabel = HyperlinkLabel()
   private val stateLabel = JBLabel().copyable()
   private val priorityLabel = JBLabel() // Not copyable because of tooltip
@@ -64,7 +64,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  final override fun createComponent() : JComponent = object : JPanel(GridBagLayout()), DataProvider {
+  final override fun createComponent(): JComponent = object : JPanel(GridBagLayout()), DataProvider {
     init {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 
@@ -110,7 +110,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       processNodeUpdated()
     }
 
-    override fun getData(dataId: String) : Any? = when {
+    override fun getData(dataId: String): Any? = when {
       CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> listOf<ProcessNode>(processNode)
       else -> null
     }
@@ -180,20 +180,21 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    add(JBLabel("Open files:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    val openFilesComponent = if (isPlatform(LINUX, MACOS)) {
-      listOpenFilesHyperlinkLabel.apply { addHyperlinkListener(createListOpenFilesHyperlinkListener()) }
+    add(JBLabel("Files handles:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    add(openFilesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+
+    if (isPlatform(LINUX, MACOS)) {
+      add(listOpenFileHandlesHyperlinkLabel.apply {
+        setHyperlinkText("List open file handles")
+        addHyperlinkListener(createListOpenFileHandlesHyperlinkListener())
+      }, bag.nextLine().next().weightx(1.0).coverLine().fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
     }
-    else {
-      openFilesLabel
-    }
-    add(openFilesComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     if (isPlatform(LINUX, MACOS, WINDOWS)) {
       add(listOpenPortsHyperlinkLabel.apply {
         setHyperlinkText("List open ports")
         addHyperlinkListener(createListOpenPortsHyperlinkListener())
-      }, bag.nextLine().next().weightx(1.0).coverLine(2).fillCellHorizontally().overrideTopInset(UIUtil.LARGE_VGAP))
+      }, bag.nextLine().next().weightx(1.0).coverLine().fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
     }
 
     add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
@@ -252,8 +253,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     readLabel.text = "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
     val bytesWritten = process.bytesWritten
     writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
-    openFilesLabel.text = process.openFiles.takeIf { it < 0 }?.toString() ?: "Unknown"
-    listOpenFilesHyperlinkLabel.setHyperlinkText(process.openFiles.takeIf { it < 0 }?.toString() ?: "List")
+    openFilesLabel.text = process.openFiles.takeIf { it >= 0 }?.toString() ?: "Unknown"
 
     bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
@@ -305,13 +305,13 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", osThreadsHyperlinkLabel, "\t")
   }
 
-  private fun createListOpenFilesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
+  private fun createListOpenFileHandlesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
     assert(isPlatform(LINUX, MACOS))
 
     val pid = processNode.process.processID.toString()
     val commandLine = GeneralCommandLine("lsof", "-p", pid)
-    RunCommandTask(project, "Collecting open files", "Failed to collect open files of PID $pid", commandLine, { output ->
-      TextPopup.showCenteredInCurrentWindow("Open Files of PID $pid", output, project, softWrap = false, wide = true)
+    RunCommandTask(project, "Collecting open file handles", "Failed to collect open file handles of PID $pid", commandLine, { output ->
+      TextPopup.showCenteredInCurrentWindow("Open File Handles of PID $pid", output, project, softWrap = false, wide = true)
     }).queue()
   }
 

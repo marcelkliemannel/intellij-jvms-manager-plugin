@@ -2,14 +2,15 @@
 
 ## [Unreleased]
 ### Added
+- Add more IntelliJ/JetBrains processes to the process type mapping
 
 ### Changed
-- Add more IntelliJ/JetBrains processes to the process type mapping
 
 ### Removed
 
 ### Fixed
 - Show only the JAR filename for the JVM entry point
+- Show open file handles count for macOS
 
 ## [1.1.0] - 2022-08-10
 ### Added
