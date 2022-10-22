@@ -28,12 +28,13 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
+import javax.swing.table.DefaultTableModel
 
 internal object UiUtils {
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val EMPTY_BORDER: Border = EmptyBorder(0, 0, 0, 0)
-  val EMPTY_FILL_PANEL : () -> JPanel = { BorderLayoutPanel().apply { border = EMPTY_BORDER } }
+  val EMPTY_FILL_PANEL: () -> JPanel = { BorderLayoutPanel().apply { border = EMPTY_BORDER } }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exported Methods -------------------------------------------------------------------------------------------- //
@@ -70,6 +71,8 @@ internal object UiUtils {
       override fun isSelected(e: AnActionEvent): Boolean = isSelected.invoke()
 
       override fun setSelected(e: AnActionEvent, state: Boolean) = setSelected.invoke(state)
+
+      override fun getActionUpdateThread() = ActionUpdateThread.EDT
     }
   }
 
@@ -116,6 +119,15 @@ internal object UiUtils {
       isEnabled = table.isEnabled
       border = JBUI.Borders.empty(2, 3, 2, 3)
       return this
+    }
+
+    fun createNonEditableDataModel(data: Array<Array<String>>, columnNames: Array<String>): DefaultTableModel {
+      return object : DefaultTableModel(data, columnNames) {
+
+        override fun isCellEditable(row: Int, column: Int): Boolean {
+          return false
+        }
+      }
     }
   }
 
@@ -199,7 +211,7 @@ fun JBLabel.xxlFont(): JBLabel {
 }
 
 fun AnAction.toSwingAction(component: Component, eventPlace: String): AbstractAction {
-  return object: AbstractAction() {
+  return object : AbstractAction() {
 
     override fun actionPerformed(e: ActionEvent) {
       val context = DataManager.getInstance().getDataContext(component)

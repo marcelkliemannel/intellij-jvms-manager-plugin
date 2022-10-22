@@ -11,12 +11,14 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
 
   companion object {
     private val DEBUG_AGENT_CL_PATTERN = Regex("-agentlib:jdwp=(?:|(.*,))address=(?<address>[^\\s,]+)")
+    private val JAVA_AGENT_CL_PATTERN = Regex("-javaagent:(?<path>[^\\s=]+)(?:=(?<options>\\S+)?)?")
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   val entryPoint: EntryPoint? by lazy { determineEntryPoint() }
   val debugAgentAddress: String? by lazy { determineDebugAgentAddress() }
+  val javaAgents: Map<String, String?> by lazy { determineJavaAgents() }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -78,8 +80,14 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     }
   }
 
-  private fun determineDebugAgentAddress() : String? {
+  private fun determineDebugAgentAddress(): String? {
     return DEBUG_AGENT_CL_PATTERN.find(process.commandLine)?.groups?.get("address")?.value
+  }
+
+  private fun determineJavaAgents(): Map<String, String?> {
+    return JAVA_AGENT_CL_PATTERN.findAll(process.commandLine).map {
+      it.groups["path"]!!.value to it.groups["options"]?.value
+    }.toMap()
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

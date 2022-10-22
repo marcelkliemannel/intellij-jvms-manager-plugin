@@ -20,7 +20,9 @@ The main part of the tool window is a tree table that lists all running JVM proc
 
 ### Process Details
 
-For each process, the tool window provides a detailed information overview. This includes the system properties for JVMs, command line, environment variables, up time, etc.
+For each JVM process the process details contains information about the main class, attached debugger and Java agents, and system properties.
+
+Besides that, the process details provides the memory usage, command line, environment variables, up time, and a lot more.
 
 <img src="screenshots/jvm-process-details.png" alt="JVM Process Details" width="362px"/>
 
@@ -29,11 +31,6 @@ For each process, the tool window provides a detailed information overview. This
 The plugin provides an easy-to-use UI to access detailed information about any running JVM process, like getting a thread dump, version, classloader hierarchy, and the heap space. In addition, the tool window provides a one-click solution to trigger the garbage collection and start the OpenJDK JVM monitoring tool.
 
 <img src="screenshots/jvm-actions.png" alt="JVM Actions" width="360px"/>
-
-## Known Limitations
-
-- The number of open files and read/written bytes are unavailable on newer macOS versions.
-- At least on M1 macs, the user and kernel time values may not be correct.
 
 ## Development
 

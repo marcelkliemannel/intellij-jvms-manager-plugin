@@ -96,7 +96,8 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
         hyperLinkLabel.addHyperlinkListener {
           val columnNames = arrayOf("Key", "Value")
           val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.sortedBy { it[0] }.toTypedArray()
-          TablePopup.showAbove("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables", hyperLinkLabel)
+          TablePopup("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables")
+                  .showAbove(hyperLinkLabel)
         }
       }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
 
@@ -302,7 +303,8 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
               DateFormatUtil.formatDateTime(it.startTime),
               StringUtil.formatDuration(it.upTime))
     }.toTypedArray()
-    TablePopup.showAbove("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information", osThreadsHyperlinkLabel, "\t")
+    TablePopup("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information") { it.joinToString("\t") }
+            .showAbove(osThreadsHyperlinkLabel)
   }
 
   private fun createListOpenFileHandlesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {

@@ -1,70 +1,38 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.common
 
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataKey
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.table.JBTable
 import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils.Table.createNonEditableDataModel
 import java.awt.Dimension
 import java.awt.datatransfer.StringSelection
 import javax.swing.JComponent
 import javax.swing.table.DefaultTableModel
 
-class TablePopup(data: Array<Array<String>>,
+class TablePopup(private val title: String,
+                 data: Array<Array<String>>,
                  columnNames: Array<String>,
                  singleDataName: String,
                  pluralDataName: String,
-                 copySeparator: String) : JBTable(MyTableModel(data, columnNames)), DataProvider {
+                 joinRowValues: (List<String>) -> String = { it.joinToString("=") })
+  : JBTable(createNonEditableDataModel(data, columnNames)), DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
-
     val SELECTED_VALUES: DataKey<List<List<String>>> = DataKey.create("JavaProcessesPlugin.SelectedValues")
-
-    fun showAbove(title: String,
-                  data: Array<Array<String>>,
-                  columnNames: Array<String>,
-                  singleDataName: String,
-                  pluralDataName: String,
-                  target: JComponent,
-                  copySeparator: String = "=") {
-
-      val tablePopup = ScrollPaneFactory.createScrollPane(TablePopup(data, columnNames, singleDataName, pluralDataName, copySeparator), true).apply {
-        val width = if (columnNames.size < 4) 600 else 700
-        val height = if (data.size < 10) 200 else 400
-        preferredSize = Dimension(width, height)
-      }
-
-      JBPopupFactory.getInstance()
-              .createComponentPopupBuilder(tablePopup, tablePopup)
-              .setRequestFocus(true)
-              .setTitle(title)
-              .setFocusable(true)
-              .setResizable(true)
-              .setMovable(true)
-              .setModalContext(false)
-              .setShowShadow(true)
-              .setShowBorder(true)
-              .setCancelKeyEnabled(true)
-              .setCancelOnClickOutside(true)
-              .setCancelOnOtherWindowOpen(false)
-              .createPopup()
-              .showAbove(target)
-    }
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //
 
   init {
-    val contextMenuActions = DefaultActionGroup(CopyValues(singleDataName, pluralDataName, copySeparator))
+    val contextMenuActions = DefaultActionGroup(CopyValues(singleDataName, pluralDataName, joinRowValues))
     addMouseListener(UiUtils.Table.createContextMenuMouseListener(this::class.qualifiedName!!) {
       contextMenuActions
     })
@@ -72,32 +40,47 @@ class TablePopup(data: Array<Array<String>>,
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
+  fun showAbove(target: JComponent) {
+    val tablePopup = ScrollPaneFactory.createScrollPane(this, true).apply {
+      val width = if (dataModel.columnCount < 4) 600 else 700
+      val height = if (dataModel.rowCount < 10) 200 else 400
+      preferredSize = Dimension(width, height)
+    }
+
+    JBPopupFactory.getInstance()
+            .createComponentPopupBuilder(tablePopup, tablePopup)
+            .setRequestFocus(true)
+            .setTitle(title)
+            .setFocusable(true)
+            .setResizable(true)
+            .setMovable(true)
+            .setModalContext(false)
+            .setShowShadow(true)
+            .setShowBorder(true)
+            .setCancelKeyEnabled(true)
+            .setCancelOnClickOutside(true)
+            .setCancelOnOtherWindowOpen(false)
+            .createPopup()
+            .showAbove(target)
+  }
+
   override fun getData(dataId: String): Any? {
     return when {
       SELECTED_VALUES.`is`(dataId) -> {
         val dataVector = (model as DefaultTableModel).dataVector
         return selectionModel.selectedIndices.map { dataVector[it] }
       }
+
       else -> null
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ---------------------------------------------------------------------------------e------------ //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  private class MyTableModel(data: Array<Array<String>>, columnNames: Array<String>)
-    : DefaultTableModel(data, columnNames) {
-
-    override fun isCellEditable(row: Int, column: Int): Boolean {
-      return false
-    }
-  }
-
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
-
-  class CopyValues(private val singleDataName: String,
-                   private val pluralDataName: String,
-                   private val copySeparator: String)
+  private class CopyValues(private val singleDataName: String,
+                           private val pluralDataName: String,
+                           private val joinRowValues: (List<String>) -> String)
     : DumbAwareAction("Copy Properties", null, AllIcons.Actions.Copy) {
 
     override fun update(e: AnActionEvent) {
@@ -112,13 +95,15 @@ class TablePopup(data: Array<Array<String>>,
       }
     }
 
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
+
     override fun actionPerformed(e: AnActionEvent) {
-      val selectedProperties = SELECTED_VALUES.getData(e.dataContext) ?: throw IllegalStateException("snh: Data missing")
+      val selectedProperties: List<List<String>> = SELECTED_VALUES.getData(e.dataContext) ?: throw IllegalStateException("snh: Data missing")
       if (selectedProperties.isEmpty()) {
         return
       }
 
-      val textToCopy = selectedProperties.joinToString("\n") { it.joinToString(copySeparator) }
+      val textToCopy = selectedProperties.joinToString("\n") { joinRowValues(it) }
       CopyPasteManager.getInstance().setContents(StringSelection(textToCopy))
     }
   }

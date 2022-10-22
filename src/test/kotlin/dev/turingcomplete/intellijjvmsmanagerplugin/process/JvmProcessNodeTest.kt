@@ -14,7 +14,6 @@ class JvmProcessNodeTest {
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  // address=127.0.0.1:64440
   @ParameterizedTest
   @CsvSource("java -jar foo.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=1044|1044",
              "java -jar foo.jar -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=127.0.0.1:1044|127.0.0.1:1044",
@@ -31,6 +30,24 @@ class JvmProcessNodeTest {
     val jvmProcessNode = JvmProcessNode(testOsProcess, mock(VirtualMachineDescriptor::class.java))
 
     assertEquals(expectedAddress, jvmProcessNode.debugAgentAddress)
+  }
+
+  @ParameterizedTest
+  @CsvSource("java -jar foo.jar -javaagent:agent.jar|agent.jar|",
+             "java -jar foo.jar -javaagent:agent.jar=|agent.jar|",
+             "java -jar foo.jar -javaagent:agent.jar=myOptions|agent.jar|myOptions",
+             "java -jar foo.jar -javaagent:agent.jar=myOptions=myOptions|agent.jar|myOptions=myOptions",
+             "java -jar foo.jar -javaagent:agent.jar=myOptions:myOptions|agent.jar|myOptions:myOptions",
+             "java -jar foo.jar -javaagent:C:/Users/John/agent.jar=myOptions|C:/Users/John/agent.jar|myOptions",
+             "java -jar foo.jar -javaagent:/Users/John/agent.jar=myOptions|/Users/John/agent.jar|myOptions",
+             "java -javaagent:agent.jar=myOptions --add-opens foo=bar foo.jar|agent.jar|myOptions",
+             delimiter = '|')
+  fun testJavaAgentExtraction(commandLine: String, agentPath: String, options: String?) {
+    val testOsProcess = mock(OSProcess::class.java)
+    `when`(testOsProcess.commandLine).thenReturn(commandLine)
+
+    val jvmProcessNode = JvmProcessNode(testOsProcess, mock(VirtualMachineDescriptor::class.java))
+    assertEquals(mapOf(Pair(agentPath, options)), jvmProcessNode.javaAgents)
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
