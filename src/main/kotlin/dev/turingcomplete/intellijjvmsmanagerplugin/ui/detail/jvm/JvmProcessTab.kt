@@ -10,6 +10,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.ProcessTab
+import java.nio.file.Path
 import java.util.*
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
@@ -22,6 +23,7 @@ class JvmProcessTab(project: Project,
 
   companion object {
     private val UNKNOWN_JVM_ENTRY_POINT_LABEL = JBLabel("Unknown")
+    private val NO_JAVA_AGENT_ATTACHED = JBLabel("None attached")
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
@@ -30,6 +32,8 @@ class JvmProcessTab(project: Project,
   private val jvmEntryPointValueWrapper = BorderLayoutPanel()
   private val jvmDebugAgentAddressDescriptionLabel = JBLabel("Debug agent:")
   private val jvmDebugAgentAddressValueLabel = JBLabel().copyable()
+  private val javaAgentsLabel = JBLabel("Java agents:")
+  private val javaAgentsWrapper = BorderLayoutPanel()
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -37,9 +41,10 @@ class JvmProcessTab(project: Project,
   override fun JPanel.addAdditionalMainInformation(bag: GridBag) {
     add(jvmEntryPointDescriptionLabel, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP))
     add(jvmEntryPointValueWrapper, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.LARGE_VGAP).weightx(1.0).fillCellHorizontally())
-
     add(jvmDebugAgentAddressDescriptionLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(jvmDebugAgentAddressValueLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
+    add(javaAgentsLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+    add(javaAgentsWrapper, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
 
     add(HyperlinkLabel("Show system properties").also { hyperLinkLabel ->
       hyperLinkLabel.addHyperlinkListener(showSystemProperties(hyperLinkLabel))
@@ -65,15 +70,24 @@ class JvmProcessTab(project: Project,
       jvmEntryPointValueWrapper.addToCenter(UNKNOWN_JVM_ENTRY_POINT_LABEL)
     }
 
+    // Java agents
+    javaAgentsWrapper.removeAll()
+    val numOfJavaAgents = processNode.javaAgents.size
+    if (numOfJavaAgents == 0) {
+      javaAgentsWrapper.addToCenter(NO_JAVA_AGENT_ATTACHED)
+    }
+    else {
+      javaAgentsWrapper.addToCenter(HyperlinkLabel("$numOfJavaAgents attached").also { hyperLinkLabel ->
+        hyperLinkLabel.addHyperlinkListener(showAttachedJavaAgents(hyperLinkLabel))
+      })
+    }
+
     // Debugger port
     val debugAgentAddress = processNode.debugAgentAddress
     if (debugAgentAddress == null) {
-      jvmDebugAgentAddressDescriptionLabel.isVisible = false
-      jvmDebugAgentAddressValueLabel.isVisible = false
+      jvmDebugAgentAddressValueLabel.text = "Not available"
     }
     else {
-      jvmDebugAgentAddressDescriptionLabel.isVisible = true
-      jvmDebugAgentAddressValueLabel.isVisible = true
       jvmDebugAgentAddressValueLabel.text = debugAgentAddress.toString()
     }
   }
@@ -90,10 +104,21 @@ class JvmProcessTab(project: Project,
     val onSuccess: (Properties) -> Unit = { systemProperties ->
       val columnNames = arrayOf("Key", "Value")
       val data = systemProperties.map { arrayOf(it.key?.toString() ?: "", it.value?.toString() ?: "") }.sortedBy { it[0] }.toTypedArray()
-      TablePopup.showAbove("System properties of PID ${processNode.process.processID}", data, columnNames, "System Property", "System Properties", hyperLinkLabel)
+      TablePopup("System properties of PID ${processNode.process.processID}", data, columnNames, "System Property", "System Properties")
+              .showAbove(hyperLinkLabel)
     }
     val onFinished = { hyperLinkLabel.isEnabled = true }
     CollectSystemPropertiesTask(project, processNode, onSuccess, onFinished).queue()
+  }
+
+  private fun showAttachedJavaAgents(hyperLinkLabel: HyperlinkLabel): (e: HyperlinkEvent) -> Unit = {
+    val columnNames = arrayOf("Name", "Path", "Options")
+    val data = processNode.javaAgents.map {
+      arrayOf(Path.of(it.key).fileName.toString(), it.key, it.value ?: "")
+    }.sortedBy { it[0] }.toTypedArray()
+    TablePopup("Java agents of PID ${processNode.process.processID}", data, columnNames, "Java Agent", "Java Agents") {
+      "-javaAgent:${it.drop(0).joinToString("=")}"
+    }.showAbove(hyperLinkLabel)
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
