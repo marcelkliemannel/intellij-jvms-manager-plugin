@@ -16,15 +16,15 @@ The tool window is available via *View | Tool Windows | JVMs* and will be shown 
 
 The main part of the tool window is a tree table that lists all running JVM processes and their child processes.
 
-<img src="screenshots/jvms-table.png" alt="Running JVMs Overview" width="861px"/>
+<img src="screenshots/jvms-table.png" alt="Running JVMs Overview" width="989px"/>
 
 ### Process Details
 
 For each JVM process the process details contains information about the main class, attached debugger and Java agents, and system properties.
 
-Besides that, the process details provides the memory usage, command line, environment variables, up time, and a lot more.
+Besides that, the process details provides the memory usage, command line, environment variables, uptime, and a lot more.
 
-<img src="screenshots/jvm-process-details.png" alt="JVM Process Details" width="362px"/>
+<img src="screenshots/jvm-process-details.png" alt="JVM Process Details" width="369px"/>
 
 ### JVM Actions
 
