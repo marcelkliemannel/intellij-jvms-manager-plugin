@@ -16,7 +16,7 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JPanel
 
-class GarbageCollectorAction : JvmAction("Garbage Collector") {
+class RunGarbageCollectorAction : JvmAction("Garbage Collector") {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //
