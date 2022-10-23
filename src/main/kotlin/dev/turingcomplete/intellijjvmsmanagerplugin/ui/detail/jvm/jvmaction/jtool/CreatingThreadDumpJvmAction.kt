@@ -15,7 +15,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmA
 import java.awt.GridBagLayout
 import javax.swing.JPanel
 
-class CreateJvmThreadDumpAction : JvmAction("Creating Thread Dump") {
+class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {

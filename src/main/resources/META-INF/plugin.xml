@@ -58,11 +58,11 @@
 
   <extensions defaultExtensionNs="dev.turingcomplete.intellijjvmsmanagerplugin">
     <jvmAction
-            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.CreateJvmThreadDumpAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.CreatingThreadDumpJvmAction"/>
     <jvmAction
             implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.GetJvmInformationAction"/>
     <jvmAction
-            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.GarbageCollectorAction"/>
+            implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.RunGarbageCollectorAction"/>
     <jvmAction
             implementation="dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool.JvmMonitoringAction"/>
     <jvmAction
