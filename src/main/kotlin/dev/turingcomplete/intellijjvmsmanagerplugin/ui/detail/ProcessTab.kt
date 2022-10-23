@@ -2,6 +2,7 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.ide.BrowserUtil
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
@@ -64,7 +65,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  final override fun createComponent(): JComponent = object : JPanel(GridBagLayout()), DataProvider {
+  final override fun createComponent(parent: Disposable): JComponent = object : JPanel(GridBagLayout()), DataProvider {
     init {
       border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
 

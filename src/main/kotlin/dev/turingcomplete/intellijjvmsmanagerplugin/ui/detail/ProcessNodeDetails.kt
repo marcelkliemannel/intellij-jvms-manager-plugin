@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
@@ -16,7 +17,8 @@ import kotlin.properties.Delegates
 
 open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
                                                protected val showParentProcessDetails: (ProcessNode) -> Unit,
-                                               initialProcessNode: T) : DataProvider {
+                                               initialProcessNode: T,
+                                               protected val parent: Disposable) : DataProvider {
 
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
@@ -31,7 +33,7 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
 
   private val tabbedPane = JBTabbedPane()
   private val tabs: List<DetailTab<T>> by lazy { createTabs() }
-  val component: JComponent by lazy { createComponent() }
+  val component: JComponent by lazy { createComponent(parent) }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -54,14 +56,14 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
-  private fun createComponent(): JComponent {
+  private fun createComponent(parent: Disposable): JComponent {
     return object: BorderLayoutPanel(), DataProvider {
 
       init {
         addToCenter(tabbedPane.apply {
           tabComponentInsets = emptyInsets()
 
-          tabs.forEach { addTab(it.title, null, createScrollPane(it.createComponent(), true)) }
+          tabs.forEach { addTab(it.title, null, createScrollPane(it.createComponent(parent), true)) }
         })
       }
 

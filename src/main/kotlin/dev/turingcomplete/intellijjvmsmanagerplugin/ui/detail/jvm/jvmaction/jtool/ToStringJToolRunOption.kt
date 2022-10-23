@@ -72,7 +72,6 @@ class ToStringJToolRunOption(optionTitle: String,
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   private class ShowProcessActionOutput(val taskTitle: String,
                                         val output: String,

@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail
 
+import com.intellij.openapi.Disposable
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import javax.swing.JComponent
 import kotlin.properties.Delegates
@@ -13,7 +14,7 @@ abstract class DetailTab<T : ProcessNode>(val title: String, initialProcessNode:
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  abstract fun createComponent(): JComponent
+  abstract fun createComponent(parent: Disposable): JComponent
 
   abstract fun processNodeUpdated()
 

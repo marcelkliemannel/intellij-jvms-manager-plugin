@@ -2,7 +2,9 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jto
 
 import com.intellij.icons.AllIcons
 import com.intellij.ide.plugins.newui.HorizontalLayout
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBLabel
@@ -96,7 +98,7 @@ class GetJvmInformationAction : JvmAction("Get JVM Information") {
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
-  override fun createComponent() = JPanel(GridBagLayout()).apply {
+  override fun createComponent(project: Project, parent: Disposable) = JPanel(GridBagLayout()).apply {
     border = UiUtils.EMPTY_BORDER
 
     val bag = UiUtils.createDefaultGridBag()

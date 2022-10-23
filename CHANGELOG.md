@@ -2,7 +2,8 @@
 
 ## [Unreleased]
 ### Added
-- Add information about attached JVM agents
+- Add action to attach Java agents
+- Add information about attached Java agents
 - Add more IntelliJ/JetBrains processes to the process type mapping
 
 ### Changed

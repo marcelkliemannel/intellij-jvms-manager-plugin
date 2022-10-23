@@ -39,7 +39,7 @@ class JvmProcessTab(project: Project,
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
 
   override fun JPanel.addAdditionalMainInformation(bag: GridBag) {
-    add(jvmEntryPointDescriptionLabel, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP))
+    add(jvmEntryPointDescriptionLabel, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
     add(jvmEntryPointValueWrapper, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.LARGE_VGAP).weightx(1.0).fillCellHorizontally())
     add(jvmDebugAgentAddressDescriptionLabel, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
     add(jvmDebugAgentAddressValueLabel, bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
