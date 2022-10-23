@@ -19,10 +19,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.util.ui.UIUtil
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.copyable
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.overrideLeftInset
-import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.overrideTopInset
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
 import org.apache.commons.lang.WordUtils
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -67,6 +64,8 @@ class AttachJavaAgentJvmAction : JvmAction("Attach Java Agent") {
     }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP))
   }
 
+  // -- Private Methods --------------------------------------------------------------------------------------------- //
+
   private fun createAgentPathFieldValidator(parent: Disposable) = ComponentValidator(parent).withValidator(Supplier {
     when {
       agentPathField.text.isBlank() -> {
@@ -83,12 +82,10 @@ class AttachJavaAgentJvmAction : JvmAction("Attach Java Agent") {
     }
   }).andRegisterOnDocumentListener(agentPathField.textField).installOn(agentPathField.textField)
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-
-  private fun createAttachJavaAgentAction(parent: JComponent): Action {
+  private fun createAttachJavaAgentAction(parentComponent: JComponent): Action {
     return object : AbstractAction("Attach", AllIcons.RunConfigurations.TestState.Run) {
       override fun actionPerformed(e: ActionEvent) {
-        val jvmActionContext = CommonsDataKeys.getRequiredData(JvmActionContext.DATA_KEY, DataManager.getInstance().getDataContext(parent))
+        val jvmActionContext = CommonsDataKeys.getRequiredData(JvmActionContext.DATA_KEY, DataManager.getInstance().getDataContext(parentComponent))
 
         agentPathFieldValidator.revalidate()
         agentPathFieldValidator.validationInfo?.let { return }
@@ -96,31 +93,35 @@ class AttachJavaAgentJvmAction : JvmAction("Attach Java Agent") {
         val agentPath = agentPathField.text
         val options = optionsField.text?.takeIf { it.isNotBlank() }
 
-        parent.isEnabled = false
-        AttachAgentTask(jvmActionContext, agentPath, options) { parent.isEnabled = true }.queue()
+        parentComponent.isEnabled = false
+        AttachJavaAgentTask(jvmActionContext, agentPath, options) { parentComponent.isEnabled = true }.queue()
       }
     }
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
-  class AttachAgentTask(private val jvmActionContext: JvmActionContext,
-                        private val agentPath: String,
-                        private val options: String?,
-                        private val onFinished: () -> Unit)
+  private class AttachJavaAgentTask(private val jvmActionContext: JvmActionContext,
+                                    private val agentPath: String,
+                                    private val options: String?,
+                                    private val onFinished: () -> Unit)
     : Task.ConditionalModal(jvmActionContext.project, "Attach Java agent", false, DEAF) {
 
     companion object {
-      private val LOG = Logger.getInstance(AttachAgentTask::class.java)
+      private val LOG = Logger.getInstance(AttachJavaAgentTask::class.java)
     }
 
     override fun run(indicator: ProgressIndicator) {
       LOG.info("Attaching Java agent '$agentPath' ${if (options != null) " with options $options" else ""} to process with PID ${jvmActionContext.processNode.process.processID}...")
-      (jvmActionContext.processNode as JvmProcessNode).attachAgent(agentPath, options)
+      (jvmActionContext.processNode as JvmProcessNode).attachJavaAgent(agentPath, options)
     }
 
     override fun onFinished() {
       onFinished.invoke()
+    }
+
+    override fun onSuccess() {
+      NotificationUtils.notifyOnToolWindow("Java agent attached to process with PID ${jvmActionContext.processNode.process.processID}.", project)
     }
 
     override fun onThrowable(error: Throwable) {
