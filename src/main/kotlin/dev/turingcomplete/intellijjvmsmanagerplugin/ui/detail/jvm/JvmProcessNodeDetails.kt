@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm
 
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
@@ -9,8 +10,9 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmA
 
 class JvmProcessNodeDetails(project: Project,
                             showParentProcessDetails: (ProcessNode) -> Unit,
-                            initialProcessNode: JvmProcessNode)
-  : ProcessNodeDetails<JvmProcessNode>(project, showParentProcessDetails, initialProcessNode) {
+                            initialProcessNode: JvmProcessNode,
+                            parent: Disposable)
+  : ProcessNodeDetails<JvmProcessNode>(project, showParentProcessDetails, initialProcessNode, parent) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
   // -- Initialization ---------------------------------------------------------------------------------------------- //

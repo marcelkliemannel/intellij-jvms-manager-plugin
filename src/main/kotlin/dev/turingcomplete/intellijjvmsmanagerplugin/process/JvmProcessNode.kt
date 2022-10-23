@@ -35,6 +35,19 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     return runOnVirtualMachine { it.systemProperties }
   }
 
+  fun attachAgent(agentPath: String, options: String?) {
+    assert(!ApplicationManager.getApplication().isDispatchThread)
+
+    return runOnVirtualMachine {
+      if (options != null) {
+        it.loadAgent(agentPath, options)
+      }
+      else {
+        it.loadAgent(agentPath)
+      }
+    }
+  }
+
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 
   private fun <T> runOnVirtualMachine(action: (VirtualMachine) -> T): T {

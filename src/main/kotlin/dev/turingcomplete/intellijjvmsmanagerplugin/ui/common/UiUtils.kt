@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareToggleAction
+import com.intellij.openapi.ui.panel.ComponentPanelBuilder
 import com.intellij.ui.ClickListener
 import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.ScrollPaneFactory
@@ -28,6 +29,7 @@ import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.border.Border
 import javax.swing.border.EmptyBorder
+import javax.swing.plaf.LabelUI
 import javax.swing.table.DefaultTableModel
 
 internal object UiUtils {
@@ -55,6 +57,18 @@ internal object UiUtils {
       }.installOn(this)
 
       toolTipText = "Copy to Clipboard"
+    }
+  }
+
+  fun createCommentLabel(text: String) = object : JBLabel(text) {
+
+    init {
+      foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
+    }
+
+    override fun setUI(ui: LabelUI?) {
+      super.setUI(ui)
+      font = ComponentPanelBuilder.getCommentFont(font)
     }
   }
 

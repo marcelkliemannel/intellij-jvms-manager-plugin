@@ -6,10 +6,7 @@ import com.intellij.ide.actions.CollapseAllAction
 import com.intellij.ide.actions.ExpandAllAction
 import com.intellij.ide.ui.LafManagerListener
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.actionSystem.ActionManager
-import com.intellij.openapi.actionSystem.AnActionEvent
-import com.intellij.openapi.actionSystem.DataProvider
-import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAwareAction
@@ -34,7 +31,8 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.list.JvmProcessesTable
 import javax.swing.JComponent
 import javax.swing.SwingConstants
 
-class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : SimpleToolWindowPanel(false), DataProvider {
+class JvmProcessesMainPanel(private val project: Project, private val parent: Disposable)
+  : SimpleToolWindowPanel(false), DataProvider {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
 
   companion object {
@@ -90,14 +88,14 @@ class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : 
   fun showProcessDetails(processNode: ProcessNode) {
     if (processNode is JvmProcessNode) {
       jvmProcessNodeDetails?.let { it.processNode = processNode } ?: run {
-        jvmProcessNodeDetails = JvmProcessNodeDetails(project, showParentProcessNodeDetails(), processNode)
+        jvmProcessNodeDetails = JvmProcessNodeDetails(project, showParentProcessNodeDetails(), processNode, parent)
       }
       contentSplitter.secondComponent = jvmProcessNodeDetails!!.component
       activeProcessDetails = jvmProcessNodeDetails
     }
     else {
       processNodeDetails?.let { it.processNode = processNode } ?: run {
-        processNodeDetails = ProcessNodeDetails(project, showParentProcessNodeDetails(), processNode)
+        processNodeDetails = ProcessNodeDetails(project, showParentProcessNodeDetails(), processNode, parent)
       }
       contentSplitter.secondComponent = processNodeDetails!!.component
       activeProcessDetails = processNodeDetails
@@ -167,7 +165,7 @@ class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : 
     return ActionManager.getInstance()
             .createActionToolbar("${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.toolbar.processes", toolbarGroup, false)
             .run {
-              setTargetComponent(this@JvmProcessesMainPanel)
+              targetComponent = this@JvmProcessesMainPanel
               component
             }
   }
@@ -223,6 +221,8 @@ class JvmProcessesMainPanel(private val project: Project, parent: Disposable) : 
     override fun actionPerformed(e: AnActionEvent) {
       e.project?.getService(JvmsManagerPluginService::class.java)?.collectJavaProcesses()
     }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.EDT
   }
 
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
