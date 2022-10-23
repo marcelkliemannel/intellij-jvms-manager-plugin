@@ -35,7 +35,7 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     return runOnVirtualMachine { it.systemProperties }
   }
 
-  fun attachAgent(agentPath: String, options: String?) {
+  fun attachJavaAgent(agentPath: String, options: String?) {
     assert(!ApplicationManager.getApplication().isDispatchThread)
 
     return runOnVirtualMachine {
