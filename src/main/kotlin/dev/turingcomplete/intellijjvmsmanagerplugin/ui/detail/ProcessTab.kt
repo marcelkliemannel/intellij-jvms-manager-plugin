@@ -183,14 +183,16 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     add(JBLabel("Files handles:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(openFilesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-
-    if (isPlatform(LINUX, MACOS)) {
-      add(listOpenFileHandlesHyperlinkLabel.apply {
+    val openFilesComponent = if (isPlatform(LINUX, MACOS)) {
+      listOpenFileHandlesHyperlinkLabel.apply {
         setHyperlinkText("List open file handles")
         addHyperlinkListener(createListOpenFileHandlesHyperlinkListener())
-      }, bag.nextLine().next().weightx(1.0).coverLine().fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      }
     }
+    else {
+      openFilesLabel
+    }
+    add(openFilesComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
     if (isPlatform(LINUX, MACOS, WINDOWS)) {
       add(listOpenPortsHyperlinkLabel.apply {
@@ -255,7 +257,10 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     readLabel.text = "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
     val bytesWritten = process.bytesWritten
     writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
-    openFilesLabel.text = process.openFiles.takeIf { it >= 0 }?.toString() ?: "Unknown"
+
+    val openFilesValues = process.openFiles.takeIf { it >= 0 }?.toString() ?: "Unknown"
+    openFilesLabel.text = openFilesValues
+    listOpenFileHandlesHyperlinkLabel.setHyperlinkText(openFilesValues)
 
     bitnessLabel.text = process.bitness.takeIf { it > 0 }?.let { "$it Bit" } ?: "Unknown"
     affinityMaskLabel.text = process.affinityMask.takeIf { it > 0 }?.toString() ?: "Unknown"
