@@ -35,15 +35,14 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     return runOnVirtualMachine { it.systemProperties }
   }
 
-  fun attachJavaAgent(agentPath: String, options: String?) {
+  fun attachJavaAgent(javaAgentType: JavaAgentType, agentReference: String, options: String?) {
     assert(!ApplicationManager.getApplication().isDispatchThread)
 
     return runOnVirtualMachine {
-      if (options != null) {
-        it.loadAgent(agentPath, options)
-      }
-      else {
-        it.loadAgent(agentPath)
+      when (javaAgentType) {
+        JavaAgentType.INSTRUMENTATION -> it.loadAgent(agentReference, options)
+        JavaAgentType.LIBRARY_FILE -> it.loadAgentPath(agentReference, options)
+        JavaAgentType.LIBRARY_BUILT_IN -> it.loadAgentLibrary(agentReference, options)
       }
     }
   }
@@ -106,4 +105,8 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 
   class EntryPoint(val typeTitle: String, val shortName: String, val fullName: String)
+
+  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+
+  enum class JavaAgentType { INSTRUMENTATION, LIBRARY_BUILT_IN, LIBRARY_FILE }
 }
