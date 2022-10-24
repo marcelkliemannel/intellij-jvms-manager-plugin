@@ -30,7 +30,7 @@ Besides that, the process details provides the memory usage, command line, envir
 
 The plugin provides an easy-to-use UI to access detailed information about any running JVM process, like getting a thread dump, version, classloader hierarchy, and the heap space. In addition, the tool window provides a one-click solution to attach a Java agent, trigger the garbage collection and start the OpenJDK JVM monitoring tool.
 
-<img src="screenshots/jvm-actions.png" alt="JVM Actions" width="360px"/>
+<img src="screenshots/jvm-actions.png" alt="JVM Actions" width="403px"/>
 
 ## Development
 
