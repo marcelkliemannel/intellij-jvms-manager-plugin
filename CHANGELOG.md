@@ -7,8 +7,7 @@
 - Add more IntelliJ/JetBrains processes to the process type mapping
 
 ### Changed
-
-### Removed
+- Update OSHI core to 6.3.0
 
 ### Fixed
 - Show only the JAR filename for the JVM entry point
