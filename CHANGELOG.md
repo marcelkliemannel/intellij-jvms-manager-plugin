@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [2.0.0] - 2022-10-26
+### Added
 - Add action to attach Java agents
 - Add information about attached Java agents
 - Add more IntelliJ/JetBrains processes to the process type mapping
