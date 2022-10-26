@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.oshi:oshi-core:6.2.2") {
+  implementation("com.github.oshi:oshi-core:6.3.0") {
     exclude(group = "org.slf4j", module = "slf4j-api")
   }
 
