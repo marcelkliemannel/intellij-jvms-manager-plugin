@@ -14,7 +14,6 @@ import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.openapi.wm.impl.content.ToolWindowContentUi
 import com.intellij.ui.content.ContentFactory
-import com.intellij.util.castSafelyTo
 import dev.turingcomplete.intellijjvmsmanagerplugin.JvmsManagerPluginService
 import dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsService
 
@@ -26,7 +25,7 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
     const val TOOLBAR_PLACE_PREFIX = "dev.turingcomplete.intellijjvmsmanagerplugin.place"
 
     fun <T> getData(dataProvider: DataProvider, dataKey: DataKey<T>): Any? {
-      val project = dataProvider.getData(CommonDataKeys.PROJECT.name).castSafelyTo<Project>() ?: return null
+      val project = dataProvider.getData(CommonDataKeys.PROJECT.name) as? Project ?: return null
       val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return null
 
       val toolWindowContentComponent = toolWindow.contentManager.selectedContent?.component
