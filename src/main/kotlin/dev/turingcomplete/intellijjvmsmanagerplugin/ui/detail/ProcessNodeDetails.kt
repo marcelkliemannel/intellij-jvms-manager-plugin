@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
-import com.intellij.util.castSafelyTo
 import com.intellij.util.ui.JBUI.emptyInsets
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
@@ -27,7 +26,7 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
     if (old != new) {
       tabs.forEach { it.processNode = processNode }
       tabbedPane.selectedIndex = 0
-      tabbedPane.selectedComponent.castSafelyTo<JBScrollPane>()?.verticalScrollBar?.value = 0
+      (tabbedPane.selectedComponent as? JBScrollPane)?.verticalScrollBar?.value = 0
     }
   }
 
