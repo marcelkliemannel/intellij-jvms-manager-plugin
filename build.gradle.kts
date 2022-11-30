@@ -5,7 +5,7 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
   java
   kotlin("jvm") version "1.7.10"
-  id("org.jetbrains.intellij") version "1.9.0"
+  id("org.jetbrains.intellij") version "1.10.0"
   id("org.jetbrains.changelog") version "1.3.1"
 }
 
@@ -18,14 +18,17 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.oshi:oshi-core:6.3.0") {
+  implementation("com.github.oshi:oshi-core:6.3.2") {
     exclude(group = "org.slf4j", module = "slf4j-api")
+    exclude(group = "net.java.dev.jna", module = "jna")
+    exclude(group = "net.java.dev.jna", module = "jna-platform")
   }
 
   testImplementation("org.mockito:mockito-core:4.6.1")
   testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
   testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
   testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+  implementation(kotlin("stdlib-jdk8"))
 }
 
 tasks.withType<Test> {
@@ -79,4 +82,12 @@ tasks {
       jvmTarget = "11"
     }
   }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+  jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+  jvmTarget = "1.8"
 }
