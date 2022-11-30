@@ -9,6 +9,16 @@
 
 ### Fixed
 
+## [2.0.1] - 2022-11-30
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+- Fix IntelliJ 2022.3 compatibility
+
 ## [2.0.0] - 2022-10-26
 ### Added
 - Add action to attach Java agents
