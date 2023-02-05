@@ -4,6 +4,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.DataProvider
 import com.intellij.openapi.project.Project
 import com.intellij.ui.IdeBorderFactory
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
@@ -15,7 +16,6 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.ProcessDescription
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.border.EmptyBorder
 
 class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
   : DetailTab<JvmProcessNode>("JVM Actions", initialProcessNode) {
@@ -45,7 +45,7 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
     private lateinit var jvmActionContext: JvmActionContext
 
     init {
-      border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
+      border = JBUI.Borders.empty(UIUtil.PANEL_REGULAR_INSETS)
 
       val bag = UiUtils.createDefaultGridBag()
 

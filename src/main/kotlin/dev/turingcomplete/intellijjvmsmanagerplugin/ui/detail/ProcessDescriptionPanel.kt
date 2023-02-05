@@ -36,7 +36,7 @@ class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescription
 
     border = UiUtils.EMPTY_BORDER
 
-    add(processDescriptionLabel, bag.nextLine().next().fillCellHorizontally().anchor(GridBagConstraints.WEST).weightx(1.0))
+    add(processDescriptionLabel, bag.nextLine().next().fillCellHorizontally().anchor(GridBagConstraints.EAST).weightx(1.0))
     add(createProcessToolbar(this), bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP))
 
     warningLabelBag = bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP / 2).coverLine()
@@ -75,7 +75,7 @@ class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescription
     val topActionGroup = DefaultActionGroup(processToolsGroup, RefreshProcessInformationAction())
 
     val myToolbar = ActionManager.getInstance().createActionToolbar("${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.toolbar.processDetails", topActionGroup, true)
-    myToolbar.setTargetComponent(parent)
+    myToolbar.targetComponent = parent
 
     return myToolbar.component.apply {
       border = null

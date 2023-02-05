@@ -1,5 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.action
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.util.text.StringUtil
@@ -27,6 +28,8 @@ class ResidentSetSizeIncludingChildrenAction: DumbAwareAction() {
   override fun actionPerformed(e: AnActionEvent) {
     throw IllegalStateException("snh: This action is not executable")
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
 

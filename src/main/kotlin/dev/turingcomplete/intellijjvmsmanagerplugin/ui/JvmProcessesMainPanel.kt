@@ -13,10 +13,10 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.SimpleToolWindowPanel
-import com.intellij.ui.JBSplitter
+import com.intellij.ui.OnePixelSplitter
 import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.components.JBLabel
-import com.intellij.util.ui.components.BorderLayoutPanel
+import com.intellij.ui.components.JBPanelWithEmptyText
+import com.intellij.util.ui.UIUtil
 import dev.turingcomplete.intellijjvmsmanagerplugin.JvmsManagerPluginService
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.CollectJvmProcessNodesTask
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.FindProcessNodeTask
@@ -29,7 +29,6 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.ProcessNodeDetails
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.JvmProcessNodeDetails
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.list.JvmProcessesTable
 import javax.swing.JComponent
-import javax.swing.SwingConstants
 
 class JvmProcessesMainPanel(private val project: Project, private val parent: Disposable)
   : SimpleToolWindowPanel(false), DataProvider {
@@ -38,17 +37,15 @@ class JvmProcessesMainPanel(private val project: Project, private val parent: Di
   companion object {
     private val LOG = Logger.getInstance(JvmProcessesMainPanel::class.java)
 
-    private val NO_PROCESS_SELECTED_COMPONENT = BorderLayoutPanel().apply {
-      addToCenter(JBLabel("Select a process to see more details here").apply {
-        horizontalAlignment = SwingConstants.CENTER
-      })
-    }
+    private val NO_PROCESS_SELECTED_COMPONENT = JBPanelWithEmptyText()
+            .withEmptyText("Select a process to see more details here")
+            .withBackground(UIUtil.getTreeBackground())
   }
 
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private var collectJvmProcessNodesTaskRunning = false
-  private var contentSplitter = JBSplitter(0.75f)
+  private var contentSplitter = OnePixelSplitter(0.75f)
   private val processesTable = JvmProcessesTable(project)
   private var processNodeDetails: ProcessNodeDetails<ProcessNode>? = null
   private var jvmProcessNodeDetails: JvmProcessNodeDetails? = null
