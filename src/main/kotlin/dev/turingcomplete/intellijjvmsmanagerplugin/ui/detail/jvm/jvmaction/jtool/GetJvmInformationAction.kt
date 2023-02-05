@@ -152,9 +152,10 @@ class GetJvmInformationAction : JvmAction("Get JVM Information") {
     }
 
     for (i in command.options.indices) {
-      val commandJComponent = command.options[i].createComponent()
-      if (commandJComponent != null) {
-        commandOptionsWrapper.add(commandJComponent, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
+      command.options[i].createComponent()?.let {
+        it.background = UIUtil.getTreeBackground()
+        it.foreground = UIUtil.getTreeForeground()
+        commandOptionsWrapper.add(it, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
       }
     }
 

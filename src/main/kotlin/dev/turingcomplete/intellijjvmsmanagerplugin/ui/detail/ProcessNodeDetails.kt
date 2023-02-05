@@ -7,6 +7,7 @@ import com.intellij.ui.ScrollPaneFactory.createScrollPane
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTabbedPane
 import com.intellij.util.ui.JBUI.emptyInsets
+import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys.CURRENT_PROCESS_DETAILS_DATA_KEY
@@ -62,7 +63,13 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
         addToCenter(tabbedPane.apply {
           tabComponentInsets = emptyInsets()
 
-          tabs.forEach { addTab(it.title, null, createScrollPane(it.createComponent(parent), true)) }
+          tabs.forEach {
+            val tabComponent = it.createComponent(parent).apply {
+              UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
+              UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
+            }
+            addTab(it.title, null, createScrollPane(tabComponent, true))
+          }
         })
       }
 

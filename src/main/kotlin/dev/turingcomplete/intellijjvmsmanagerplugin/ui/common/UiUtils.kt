@@ -28,14 +28,13 @@ import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import javax.swing.*
 import javax.swing.border.Border
-import javax.swing.border.EmptyBorder
 import javax.swing.plaf.LabelUI
 import javax.swing.table.DefaultTableModel
 
 internal object UiUtils {
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  val EMPTY_BORDER: Border = EmptyBorder(0, 0, 0, 0)
+  val EMPTY_BORDER: Border = JBUI.Borders.empty()
   val EMPTY_FILL_PANEL: () -> JPanel = { BorderLayoutPanel().apply { border = EMPTY_BORDER } }
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
@@ -131,7 +130,7 @@ internal object UiUtils {
       componentOrientation = table.componentOrientation
       font = table.font
       isEnabled = table.isEnabled
-      border = JBUI.Borders.empty(2, 3, 2, 3)
+      border = JBUI.Borders.empty(2, 3)
       return this
     }
 

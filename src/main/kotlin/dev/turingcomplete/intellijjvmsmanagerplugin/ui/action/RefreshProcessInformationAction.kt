@@ -1,6 +1,7 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.action
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.progress.ProgressIndicator
@@ -20,7 +21,7 @@ class RefreshProcessInformationAction(showIcon: Boolean = true)
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
-  var updateProcessInformationTaskRunning = false
+  private var updateProcessInformationTaskRunning = false
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
@@ -35,6 +36,8 @@ class RefreshProcessInformationAction(showIcon: Boolean = true)
     updateProcessInformationTaskRunning = true
     UpdateProcessInformationTask(processNode, e.project) { updateProcessInformationTaskRunning = false }.queue()
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //

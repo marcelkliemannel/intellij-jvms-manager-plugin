@@ -4,18 +4,13 @@
 ### Added
 
 ### Changed
+- Improve detail panel readability
 
 ### Removed
 
 ### Fixed
 
 ## [2.0.1] - 2022-11-30
-### Added
-
-### Changed
-
-### Removed
-
 ### Fixed
 - Fix IntelliJ 2022.3 compatibility
 

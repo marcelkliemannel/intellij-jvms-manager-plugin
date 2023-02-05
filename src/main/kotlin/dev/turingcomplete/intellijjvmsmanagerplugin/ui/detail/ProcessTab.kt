@@ -11,6 +11,7 @@ import com.intellij.ui.HyperlinkLabel
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.text.DateFormatUtil
 import com.intellij.util.ui.GridBag
+import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.UIUtil
 import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.OshiUtils
@@ -25,13 +26,13 @@ import oshi.PlatformEnum.*
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.border.EmptyBorder
 import javax.swing.event.HyperlinkEvent
 
 open class ProcessTab<T : ProcessNode>(protected val project: Project,
                                        protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
                                        initialProcessNode: T,
-                                       title: String = "Process") : DetailTab<T>(title, initialProcessNode) {
+                                       title: String = "Process") :
+  DetailTab<T>(title, initialProcessNode) {
   // -- Companion Object -------------------------------------------------------------------------------------------- //
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
@@ -67,7 +68,7 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
 
   final override fun createComponent(parent: Disposable): JComponent = object : JPanel(GridBagLayout()), DataProvider {
     init {
-      border = EmptyBorder(UIUtil.PANEL_REGULAR_INSETS)
+      border = JBUI.Borders.empty(UIUtil.PANEL_REGULAR_INSETS)
 
       val bag = UiUtils.createDefaultGridBag()
 
@@ -110,6 +111,9 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
 
       processNodeUpdated()
+
+      UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
+      UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
     }
 
     override fun getData(dataId: String): Any? = when {

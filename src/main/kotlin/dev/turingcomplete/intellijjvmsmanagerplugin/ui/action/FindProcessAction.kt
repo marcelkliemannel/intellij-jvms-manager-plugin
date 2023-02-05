@@ -1,6 +1,7 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.action
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.DumbAwareAction
@@ -27,6 +28,8 @@ class FindProcessAction : DumbAwareAction("Find Process Information", null, AllI
   override fun update(e: AnActionEvent) {
     e.presentation.isEnabled = !findProcessNodeTaskRunning
   }
+
+  override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   override fun actionPerformed(e: AnActionEvent) {
     if (findProcessNodeTaskRunning) {

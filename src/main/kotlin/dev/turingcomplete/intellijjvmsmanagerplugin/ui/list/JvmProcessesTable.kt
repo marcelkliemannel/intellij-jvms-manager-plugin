@@ -44,8 +44,7 @@ class JvmProcessesTable(private val project: Project)
   // -- Properties -------------------------------------------------------------------------------------------------- //
 
   private val createContextMenuActions: ActionGroup by lazy { createContextMenuActions() }
-  var setJvmProcessNodesCalledAtLeastOnce = false
-    private set
+  private var setJvmProcessNodesCalledAtLeastOnce = false
   val treeExpander = DefaultTreeTableExpander(this)
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //

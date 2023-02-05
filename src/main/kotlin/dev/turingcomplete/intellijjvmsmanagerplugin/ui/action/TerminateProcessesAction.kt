@@ -1,6 +1,7 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.action
 
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.application.ApplicationManager
@@ -59,6 +60,8 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   protected fun getProcessNodes(dataContext: DataContext): List<ProcessNode> {
     return CommonsDataKeys.getRequiredData(CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY, dataContext)
   }
+
+  final override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
