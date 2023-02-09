@@ -7,10 +7,9 @@ import com.intellij.openapi.actionSystem.ex.ActionUtil
 import com.intellij.openapi.ide.CopyPasteManager
 import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.panel.ComponentPanelBuilder
-import com.intellij.ui.ClickListener
-import com.intellij.ui.HyperlinkLabel
-import com.intellij.ui.ScrollPaneFactory
-import com.intellij.ui.SeparatorWithText
+import com.intellij.openapi.util.IconLoader
+import com.intellij.openapi.util.ScalableIcon
+import com.intellij.ui.*
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.scale.JBUIScale
@@ -96,6 +95,11 @@ internal object UiUtils {
 
   fun createContextHelpLabel(text: String) = JLabel(AllIcons.General.ContextHelp).apply {
     toolTipText = text
+  }
+
+  fun loadPluginIcon(iconFileName: String, width: Int = 16, height: Int = 16): ScalableIcon {
+    val icon = IconLoader.getIcon("dev/turingcomplete/intellijjvmsmanagerplugin/icons/${iconFileName}", UiUtils::class.java)
+    return JBUIScale.scaleIcon(SizedIcon(icon, width, height))
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
