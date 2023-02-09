@@ -11,6 +11,7 @@
 
 ### Fixed
 - Fix incapability of icon scaling
+- Fix JVM processes are collected during the opening of every tab
 
 ## [2.0.1] - 2022-11-30
 ### Fixed
