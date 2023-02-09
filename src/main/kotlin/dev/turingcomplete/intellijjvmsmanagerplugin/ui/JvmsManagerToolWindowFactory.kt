@@ -58,7 +58,8 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
     project.messageBus.connect(toolWindow.disposable).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
       override fun toolWindowShown(toolWindow: ToolWindow) {
-        if (!JvmsManagerSettingsService.getInstance().collectJvmProcessesOnToolWindowOpen) {
+        if (toolWindow.id != TOOL_WINDOW_ID ||
+            !JvmsManagerSettingsService.getInstance().collectJvmProcessesOnToolWindowOpen) {
           return
         }
 
