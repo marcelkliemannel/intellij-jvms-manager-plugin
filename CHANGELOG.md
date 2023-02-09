@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [2.1.0] - 2023-02-09
+### Added
 - Offer open settings in the "No processes collected yet" panel
 
 ### Changed
