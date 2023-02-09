@@ -48,22 +48,26 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
 
     ApplicationManager.getApplication().invokeLater {
       val jvmProcessesMainPanel = JvmProcessesMainPanel(project, toolWindow.disposable)
-      ContentFactory.getInstance().createContent(jvmProcessesMainPanel, null, false).apply {
-        putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
-        isCloseable = false
-        toolWindow.contentManager.addContent(this)
+      ContentFactory.getInstance()
+              .createContent(jvmProcessesMainPanel, null, false)
+              .apply {
+                putUserData(ToolWindow.SHOW_CONTENT_ICON, false)
+                isCloseable = false
+                toolWindow.contentManager.addContent(this)
+              }
+      // The event on the message bus will not be triggered if the tool window
+      // is already open during the start of the tool window.
+      if (toolWindow.isVisible) {
+        collectJvmProcessesOnToolWindowOpen(project)
       }
     }
 
     project.messageBus.connect(toolWindow.disposable).subscribe(ToolWindowManagerListener.TOPIC, object : ToolWindowManagerListener {
 
       override fun toolWindowShown(toolWindow: ToolWindow) {
-        if (toolWindow.id != TOOL_WINDOW_ID ||
-            !JvmsManagerSettingsService.getInstance().collectJvmProcessesOnToolWindowOpen) {
-          return
+        if (toolWindow.id == TOOL_WINDOW_ID) {
+          collectJvmProcessesOnToolWindowOpen(project)
         }
-
-        project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
       }
     })
   }
@@ -79,5 +83,14 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //
+
+  private fun collectJvmProcessesOnToolWindowOpen(project: Project) {
+    if (!JvmsManagerSettingsService.getInstance().collectJvmProcessesOnToolWindowOpen) {
+      return
+    }
+
+    project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
+  }
+
   // -- Inner Type -------------------------------------------------------------------------------------------------- //
 }
