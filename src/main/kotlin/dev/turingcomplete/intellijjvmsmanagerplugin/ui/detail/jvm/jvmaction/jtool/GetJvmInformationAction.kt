@@ -153,8 +153,8 @@ class GetJvmInformationAction : JvmAction("Get JVM Information") {
 
     for (i in command.options.indices) {
       command.options[i].createComponent()?.let {
-        it.background = UIUtil.getTreeBackground()
-        it.foreground = UIUtil.getTreeForeground()
+        UIUtil.setBackgroundRecursively(it, UIUtil.getTreeBackground())
+        UIUtil.setForegroundRecursively(it, UIUtil.getTreeForeground())
         commandOptionsWrapper.add(it, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP).weightx(1.0).fillCellHorizontally())
       }
     }

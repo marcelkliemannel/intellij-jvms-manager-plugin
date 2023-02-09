@@ -4,11 +4,13 @@
 ### Added
 
 ### Changed
-- Improve detail panel readability
+- Improve the UI of the process details panel
+- Improve compatibility with IntelliJ's new experimental UI
 
 ### Removed
 
 ### Fixed
+- Fix incapability of icon scaling
 
 ## [2.0.1] - 2022-11-30
 ### Fixed

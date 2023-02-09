@@ -1,9 +1,9 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.process
 
 import com.intellij.icons.AllIcons
-import com.intellij.ui.IconManager
 import com.sun.tools.attach.VirtualMachineDescriptor
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.CommonIcons
+import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils
 import oshi.software.os.OSProcess
 import javax.swing.Icon
 
@@ -50,8 +50,8 @@ enum class ProcessType(val description: String?, private val loadIcon: (() -> Ic
 
   // -- Initialization ---------------------------------------------------------------------------------------------- //
 
-  constructor(description: String, iconFileName: String?, url: String? = null)
-          : this(description, { IconManager.getInstance().getIcon("dev/turingcomplete/intellijjvmsmanagerplugin/icons/${iconFileName}", ProcessType::class.java) }, url)
+  constructor(description: String, iconFileName: String, url: String? = null)
+          : this(description, { UiUtils.loadPluginIcon(iconFileName) }, url)
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
   // -- Private Methods --------------------------------------------------------------------------------------------- //
