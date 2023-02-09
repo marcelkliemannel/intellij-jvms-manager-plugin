@@ -2,12 +2,11 @@
 
 ## [Unreleased]
 ### Added
+- Offer open settings in the "No processes collected yet" panel
 
 ### Changed
 - Improve the UI of the process details panel
 - Improve compatibility with IntelliJ's new experimental UI
-
-### Removed
 
 ### Fixed
 - Fix incapability of icon scaling

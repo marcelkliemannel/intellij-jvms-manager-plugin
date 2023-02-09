@@ -97,14 +97,20 @@ class JvmProcessesTable(private val project: Project)
   fun syncReloadingState(isReloading: Boolean) {
     isEnabled = !isReloading
 
-    emptyText.clear()
-    if (isReloading) {
-      emptyText.appendLine("Collecting JVM processes...")
-    }
-    else {
-      emptyText.appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "No JVM processes found" else "JVM processes have not been collected yet")
-      emptyText.appendLine("Collect JVM Processes", SimpleTextAttributes.LINK_ATTRIBUTES) {
-        project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
+    with(emptyText) {
+      clear()
+      if (isReloading) {
+        appendLine("Collecting JVM processes...")
+      }
+      else {
+        appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "No JVM processes found" else "JVM processes have not been collected yet")
+        appendLine("Collect JVM processes", SimpleTextAttributes.LINK_ATTRIBUTES) {
+          project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
+        }
+        appendLine("")
+        appendLine("Configure to collect JVM processes when the tool window gets open...", SimpleTextAttributes.LINK_ATTRIBUTES) {
+          project.getService(JvmsManagerPluginService::class.java)?.showSettings()
+        }
       }
     }
   }
