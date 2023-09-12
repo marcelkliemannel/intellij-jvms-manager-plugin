@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.ColoredTableCellRenderer
 import com.intellij.ui.ColoredTreeCellRenderer
+import com.intellij.ui.DoubleClickListener
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.treeStructure.treetable.DefaultTreeTableExpander
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns
@@ -23,6 +24,7 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.GracefullyTerminat
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.ResidentSetSizeIncludingChildrenAction
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.action.TotalResidentSetSizeAction
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils
+import java.awt.event.MouseEvent
 import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
@@ -90,6 +92,26 @@ class JvmProcessesTable(private val project: Project)
     tree.isRootVisible = false
 
     syncReloadingState(false)
+
+    object : DoubleClickListener() {
+      override fun onDoubleClick(event: MouseEvent): Boolean {
+        val row: Int = rowAtPoint(event.point)
+        val column = columnAtPoint(event.point)
+        if (row >= 0 && row < getRowCount()
+            // First column already handled by the `BasicTreeUi`
+            && column > 0 && column < columnCount) {
+
+          if (tree.isExpanded(row)) {
+            tree.collapseRow(row)
+          }
+          else {
+            tree.expandRow(row)
+          }
+          return true
+        }
+        return false
+      }
+    }.installOn(this)
   }
 
   // -- Exposed Methods --------------------------------------------------------------------------------------------- //
