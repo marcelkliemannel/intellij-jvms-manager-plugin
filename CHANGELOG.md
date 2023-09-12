@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 ### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [2.2.0] - 2023-09-12
+### Added
+- Improve double click handling in the process overview table
+
+### Changed
+- Improve tool window icon for IntelliJ's new UI
+
+## [2.1.0] 2023-02-09
+### Added
 - Offer open settings in the "No processes collected yet" panel
 
 ### Changed
