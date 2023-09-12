@@ -1,7 +1,15 @@
 # Changelog
 
 ## [Unreleased]
+### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [2.2.0] - 2023-09-12
 ### Added
 - Improve double click handling in the process overview table
 
