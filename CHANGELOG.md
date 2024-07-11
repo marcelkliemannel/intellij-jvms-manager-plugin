@@ -8,6 +8,7 @@
 ### Removed
 
 ### Fixed
+- Fix compatibility with IntelliJ 2024.2 
 
 ## [2.2.0] - 2023-09-12
 ### Added

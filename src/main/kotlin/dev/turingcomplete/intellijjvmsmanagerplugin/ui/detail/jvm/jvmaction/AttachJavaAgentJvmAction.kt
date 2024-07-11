@@ -11,6 +11,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.*
 import com.intellij.openapi.util.Comparing
 import com.intellij.openapi.util.SystemInfo
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.ui.CollectionComboBoxModel
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextField
@@ -19,7 +20,6 @@ import com.intellij.util.ui.components.BorderLayoutPanel
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
-import org.apache.commons.lang.WordUtils
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.awt.event.ActionEvent
@@ -132,7 +132,7 @@ class AttachJavaAgentJvmAction : JvmAction("Attach Java Agent") {
       Messages.showErrorDialog(project,
                                "$errorMessage\n\n" +
                                "See idea.log for more details.",
-                               "${WordUtils.capitalize(title)} Failed")
+                               "${StringUtil.capitalize(title)} Failed")
     }
   }
 
