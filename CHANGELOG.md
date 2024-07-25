@@ -8,7 +8,8 @@
 ### Removed
 
 ### Fixed
-- Fix compatibility with IntelliJ 2024.2 
+- Fix compatibility with IntelliJ 2024.2
+- Fix error "TreeUI should be accessed only from EDT" during processes reload
 
 ## [2.2.0] - 2023-09-12
 ### Added
