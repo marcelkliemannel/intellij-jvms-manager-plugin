@@ -9,7 +9,10 @@ import com.intellij.openapi.project.DumbAwareToggleAction
 import com.intellij.openapi.ui.panel.ComponentPanelBuilder
 import com.intellij.openapi.util.IconLoader
 import com.intellij.openapi.util.ScalableIcon
-import com.intellij.ui.*
+import com.intellij.ui.ClickListener
+import com.intellij.ui.HyperlinkLabel
+import com.intellij.ui.ScrollPaneFactory
+import com.intellij.ui.SizedIcon
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.scale.JBUIScale
@@ -86,11 +89,6 @@ internal object UiUtils {
 
       override fun getActionUpdateThread() = ActionUpdateThread.EDT
     }
-  }
-
-  fun createSeparator(title: String) = SeparatorWithText().apply {
-    caption = title
-    setCaptionCentered(false)
   }
 
   fun createContextHelpLabel(text: String) = JLabel(AllIcons.General.ContextHelp).apply {

@@ -7,8 +7,8 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.util.text.StringUtil
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.StringAppenderProcessAdapter
-import org.apache.commons.lang.WordUtils
 
 class RunCommandTask(project: Project,
                      title: String,
@@ -61,7 +61,7 @@ class RunCommandTask(project: Project,
     Messages.showErrorDialog(project,
                              "$enhancedErrorMessage\n\n" +
                              "See idea.log for more details.",
-                             "${WordUtils.capitalize(title)} Failed")
+                             "${StringUtil.capitalize(title)} Failed")
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

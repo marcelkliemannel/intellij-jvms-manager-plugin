@@ -37,7 +37,7 @@ object CommonsDataKeys {
   class CurrentProcessDetailsDataRule : GetDataRule {
 
     override fun getData(dataProvider: DataProvider): Any? {
-      return dataProvider.getData(CURRENT_PROCESS_DETAILS_DATA_KEY.name)
+      return CURRENT_PROCESS_DETAILS_DATA_KEY.getData(dataProvider)
              ?: JvmsManagerToolWindowFactory.getData(dataProvider, CURRENT_PROCESS_DETAILS_DATA_KEY)
     }
   }
@@ -47,7 +47,7 @@ object CommonsDataKeys {
   class CollectJvmProcessNodesTaskRunningDataRule : GetDataRule {
 
     override fun getData(dataProvider: DataProvider): Any? {
-      return dataProvider.getData(COLLECT_JVM_PROCESS_NODES_TASK_RUNNING.name)
+      return COLLECT_JVM_PROCESS_NODES_TASK_RUNNING.getData(dataProvider)
              ?: JvmsManagerToolWindowFactory.getData(dataProvider, COLLECT_JVM_PROCESS_NODES_TASK_RUNNING)
     }
   }

@@ -7,7 +7,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.table.JBTable
-import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils.Table.createNonEditableDataModel
 import java.awt.Dimension
 import java.awt.datatransfer.StringSelection
@@ -61,7 +60,7 @@ class TablePopup(private val title: String,
             .setCancelOnClickOutside(true)
             .setCancelOnOtherWindowOpen(false)
             .createPopup()
-            .showAbove(target)
+            .show(target)
   }
 
   override fun getData(dataId: String): Any? {

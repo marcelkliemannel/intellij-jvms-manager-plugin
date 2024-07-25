@@ -1,12 +1,13 @@
+import org.jetbrains.changelog.Changelog
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   java
-  kotlin("jvm") version "1.7.10"
-  id("org.jetbrains.intellij") version "1.12.0"
-  id("org.jetbrains.changelog") version "1.3.1"
+  kotlin("jvm") version "1.9.0"
+  id("org.jetbrains.intellij") version "1.17.4"
+  id("org.jetbrains.changelog") version "2.2.1"
 }
 
 group = properties("pluginGroup")
@@ -18,16 +19,17 @@ repositories {
 }
 
 dependencies {
-  implementation("com.github.oshi:oshi-core:6.3.2") {
+  implementation("com.github.oshi:oshi-core:6.6.1") {
     exclude(group = "org.slf4j", module = "slf4j-api")
     exclude(group = "net.java.dev.jna", module = "jna")
     exclude(group = "net.java.dev.jna", module = "jna-platform")
   }
 
-  testImplementation("org.mockito:mockito-core:4.6.1")
-  testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.0")
-  testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.0")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.0")
+  testImplementation("org.mockito:mockito-core:5.12.0")
+  val jUnitVersion = "5.10.3"
+  testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
+  testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
+  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
   implementation(kotlin("stdlib-jdk8"))
 }
 
@@ -55,7 +57,7 @@ tasks {
     version.set(properties("pluginVersion"))
     sinceBuild.set(properties("pluginSinceBuild"))
     untilBuild.set(properties("pluginUntilBuild"))
-    changeNotes.set(provider { changelog.getLatest().toHTML() })
+    changeNotes.set(provider { changelog.renderItem(changelog.get(project.version as String), Changelog.OutputType.HTML) })
   }
 
   runPluginVerifier {
@@ -79,15 +81,11 @@ tasks {
   withType<KotlinCompile> {
     kotlinOptions {
       freeCompilerArgs = listOf("-Xjsr305=strict")
-      jvmTarget = "11"
+      jvmTarget = "17"
     }
   }
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-  jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-  jvmTarget = "1.8"
+
+  withType<Test> {
+    useJUnitPlatform()
+  }
 }

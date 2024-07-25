@@ -104,28 +104,29 @@ class JvmProcessesMainPanel(private val project: Project, private val parent: Di
       return
     }
 
+    collectJvmProcessNodesTaskRunning = true
+    ApplicationManager.getApplication().invokeAndWait {
+      processesTable.syncReloadingState(true)
+      processNodeDetails?.setEnabled(false)
+      jvmProcessNodeDetails?.setEnabled(false)
+    }
+
     val onSuccess: (List<JvmProcessNode>) -> Unit = { jvmProcessNodes ->
       processesTable.setJvmProcessNodes(jvmProcessNodes)
     }
-
     val onFinished: () -> Unit = {
       collectJvmProcessNodesTaskRunning = false
       processesTable.syncReloadingState(false)
       processNodeDetails?.setEnabled(true)
       jvmProcessNodeDetails?.setEnabled(true)
     }
-
     val onThrowable: (Throwable) -> Unit = { error ->
       val errorMessage = "Failed to collect JVM processes: ${error.message}"
       LOG.warn(errorMessage, error)
       Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "Collecting JVM Processes Failed")
     }
-
-    collectJvmProcessNodesTaskRunning = true
-    processesTable.syncReloadingState(true)
-    processNodeDetails?.setEnabled(false)
-    jvmProcessNodeDetails?.setEnabled(false)
-    CollectJvmProcessNodesTask(project, onSuccess, onFinished, onThrowable).queue()
+    CollectJvmProcessNodesTask(project, onSuccess, onFinished, onThrowable)
+            .queue()
   }
 
   // -- Private Methods --------------------------------------------------------------------------------------------- //

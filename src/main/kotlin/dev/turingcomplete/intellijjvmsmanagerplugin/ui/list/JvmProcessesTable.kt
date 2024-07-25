@@ -60,6 +60,10 @@ class JvmProcessesTable(private val project: Project)
     })
 
     selectionModel.addListSelectionListener {
+      if (project.isDisposed) {
+        return@addListSelectionListener
+      }
+
       // This listener gets called for every row during the refresh of this
       // table. We prevent this by only reacting to events that have been
       // coming from an enabled table.

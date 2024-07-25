@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.ui.popup.JBPopup
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.vcs.commit.NonModalCommitPanel.Companion.showAbove
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.JvmsManagerToolWindowFactory
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.UiUtils.createSimpleToggleAction
 import java.awt.Dimension
@@ -28,7 +27,7 @@ class TextPopup private constructor(content: String, softWrap: Boolean, private 
                   breakCommand: Boolean = false,
                   wide: Boolean = false) {
 
-      create(content, softWrap, breakCommandSupported, breakCommand, title, wide).showAbove(target)
+      create(content, softWrap, breakCommandSupported, breakCommand, title, wide).show(target)
     }
 
     fun showCenteredInCurrentWindow(title: String,
