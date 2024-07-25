@@ -25,11 +25,11 @@ class JvmsManagerToolWindowFactory : ToolWindowFactory, DumbAware, Disposable {
     const val TOOLBAR_PLACE_PREFIX = "dev.turingcomplete.intellijjvmsmanagerplugin.place"
 
     fun <T> getData(dataProvider: DataProvider, dataKey: DataKey<T>): Any? {
-      val project = dataProvider.getData(CommonDataKeys.PROJECT.name) as? Project ?: return null
+      val project = CommonDataKeys.PROJECT.getData(dataProvider) ?: return null
       val toolWindow = ToolWindowManager.getInstance(project).getToolWindow(TOOL_WINDOW_ID) ?: return null
 
       val toolWindowContentComponent = toolWindow.contentManager.selectedContent?.component
-      return if (toolWindowContentComponent is DataProvider) toolWindowContentComponent.getData(dataKey.name) else null
+      return if (toolWindowContentComponent is DataProvider) dataKey.getData(toolWindowContentComponent) else null
     }
 
     fun getJvmProcessesMainPanel(project: Project): JvmProcessesMainPanel? {
