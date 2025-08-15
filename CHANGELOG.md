@@ -10,6 +10,10 @@
 
 ### Fixed
 
+## 2.4.0 - 2025-08-15
+
+### Fixed
+
 - Fix "Show In Thread Dump Analyzer" action in newer IntelliJ releases
 
 ## 2.3.0 - 2024-07-25
