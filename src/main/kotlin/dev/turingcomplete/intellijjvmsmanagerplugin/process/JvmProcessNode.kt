@@ -3,25 +3,27 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.process
 import com.intellij.openapi.application.ApplicationManager
 import com.sun.tools.attach.VirtualMachine
 import com.sun.tools.attach.VirtualMachineDescriptor
-import oshi.software.os.OSProcess
 import java.util.*
+import oshi.software.os.OSProcess
 
-class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) : ProcessNode(process) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachineDescriptor) :
+  ProcessNode(process) {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
-    private val DEBUG_AGENT_CL_PATTERN = Regex("-agentlib:jdwp=(?:|(.*,))address=(?<address>[^\\s,]+)")
+    private val DEBUG_AGENT_CL_PATTERN =
+      Regex("-agentlib:jdwp=(?:|(.*,))address=(?<address>[^\\s,]+)")
     private val JAVA_AGENT_CL_PATTERN = Regex("-javaagent:(?<path>[^\\s=]+)(?:=(?<options>\\S+)?)?")
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   val entryPoint: EntryPoint? by lazy { determineEntryPoint() }
   val debugAgentAddress: String? by lazy { determineDebugAgentAddress() }
   val javaAgents: Map<String, String?> by lazy { determineJavaAgents() }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun determineProcessType(): ProcessType = ProcessType.determine(process, vmDescriptor)
 
@@ -47,14 +49,13 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun <T> runOnVirtualMachine(action: (VirtualMachine) -> T): T {
     val virtualMachine = vmDescriptor.provider().attachVirtualMachine(vmDescriptor)
     try {
       return action(virtualMachine)
-    }
-    finally {
+    } finally {
       virtualMachine.detach()
     }
   }
@@ -82,12 +83,10 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
     return if (entryPointName.endsWith(".jar")) {
       val jarFileName = entryPointName.substringAfterLast("/")
       EntryPoint("Entry JAR", jarFileName, entryPointName)
-    }
-    else if (entryPointName.isNotBlank()) {
+    } else if (entryPointName.isNotBlank()) {
       val simpleName = entryPointName.substringAfterLast(".")
       EntryPoint("Main class", simpleName, entryPointName)
-    }
-    else {
+    } else {
       null
     }
   }
@@ -97,16 +96,20 @@ class JvmProcessNode(process: OSProcess, private val vmDescriptor: VirtualMachin
   }
 
   private fun determineJavaAgents(): Map<String, String?> {
-    return JAVA_AGENT_CL_PATTERN.findAll(process.commandLine).map {
-      it.groups["path"]!!.value to it.groups["options"]?.value
-    }.toMap()
+    return JAVA_AGENT_CL_PATTERN.findAll(process.commandLine)
+      .map { it.groups["path"]!!.value to it.groups["options"]?.value }
+      .toMap()
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   class EntryPoint(val typeTitle: String, val shortName: String, val fullName: String)
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  enum class JavaAgentType { INSTRUMENTATION, LIBRARY_BUILT_IN, LIBRARY_FILE }
+  enum class JavaAgentType {
+    INSTRUMENTATION,
+    LIBRARY_BUILT_IN,
+    LIBRARY_FILE,
+  }
 }

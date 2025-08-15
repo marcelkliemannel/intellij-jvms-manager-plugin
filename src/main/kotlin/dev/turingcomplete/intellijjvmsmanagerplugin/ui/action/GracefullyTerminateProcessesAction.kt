@@ -7,23 +7,24 @@ import com.intellij.openapi.progress.ProgressIndicator
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import javax.swing.Icon
 
-class GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
-  : TerminateProcessesAction<GracefullyTerminateProcessesAction>(collectJavaProcessesOnSuccess) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean) :
+  TerminateProcessesAction<GracefullyTerminateProcessesAction>(collectJavaProcessesOnSuccess) {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private val LOG = Logger.getInstance(GracefullyTerminateProcessesAction::class.java)
   }
 
-  // -- Variables --------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exported Methods -------------------------------------------------------------------------------------------- //
+  // -- Variables ----------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun icon(): Icon = AllIcons.Actions.Suspend
 
   override fun createTitle(dataContext: DataContext): String {
     val numOfProcesses = getProcessNodes(dataContext).size
-    return if (numOfProcesses == 1) "Gracefully Terminate Process" else "Gracefully Terminate $numOfProcesses Processes"
+    return if (numOfProcesses == 1) "Gracefully Terminate Process"
+    else "Gracefully Terminate $numOfProcesses Processes"
   }
 
   override fun createErrorMessage(processNode: ProcessNode, error: Throwable): String {
@@ -38,6 +39,6 @@ class GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
     processNode.terminateGracefully()
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

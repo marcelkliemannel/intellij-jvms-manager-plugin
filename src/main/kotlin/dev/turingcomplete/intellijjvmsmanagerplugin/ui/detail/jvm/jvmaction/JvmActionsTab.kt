@@ -17,15 +17,15 @@ import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 
-class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
-  : DetailTab<JvmProcessNode>("JVM Actions", initialProcessNode) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode) :
+  DetailTab<JvmProcessNode>("JVM Actions", initialProcessNode) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private lateinit var jvmActionsPanel: JvmActionsPanel
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun createComponent(parent: Disposable): JComponent {
     jvmActionsPanel = JvmActionsPanel(parent)
@@ -36,8 +36,8 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
     jvmActionsPanel.newProcessNodeSet()
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   inner class JvmActionsPanel(parent: Disposable) : JPanel(GridBagLayout()), DataProvider {
 
@@ -49,19 +49,45 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
 
       val bag = UiUtils.createDefaultGridBag()
 
-      add(processDescriptionPanel, bag.nextLine().next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-      add(JvmActionsWrapper(project, parent), bag.nextLine().next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_HGAP).fillCellHorizontally())
+      add(
+        processDescriptionPanel,
+        bag
+          .nextLine()
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
+      add(
+        JvmActionsWrapper(project, parent),
+        bag
+          .nextLine()
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_HGAP)
+          .fillCellHorizontally(),
+      )
 
       // Fill rest of panel
-      add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().weightx(1.0).overrideBottomInset(UIUtil.DEFAULT_HGAP / 2).weighty(1.0).fillCell())
+      add(
+        UiUtils.EMPTY_FILL_PANEL(),
+        bag
+          .nextLine()
+          .next()
+          .weightx(1.0)
+          .overrideBottomInset(UIUtil.DEFAULT_HGAP / 2)
+          .weighty(1.0)
+          .fillCell(),
+      )
 
       newProcessNodeSet()
     }
 
-    override fun getData(dataId: String) = when {
-      JvmActionContext.DATA_KEY.`is`(dataId) -> jvmActionContext
-      else -> null
-    }
+    override fun getData(dataId: String) =
+      when {
+        JvmActionContext.DATA_KEY.`is`(dataId) -> jvmActionContext
+        else -> null
+      }
 
     fun newProcessNodeSet() {
       jvmActionContext = JvmActionContext(project, processNode)
@@ -69,7 +95,7 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
     }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   private class JvmActionsWrapper(project: Project, parent: Disposable) : JPanel(GridBagLayout()) {
 
@@ -81,10 +107,11 @@ class JvmActionsTab(val project: Project, initialProcessNode: JvmProcessNode)
       val jvmActions = JvmAction.EP.extensions
       for (i in jvmActions.indices) {
         val jvmAction = jvmActions[i]
-        val component = BorderLayoutPanel().apply {
-          border = IdeBorderFactory.createTitledBorder(jvmAction.title, false)
-          addToCenter(jvmAction.createComponent(project, parent))
-        }
+        val component =
+          BorderLayoutPanel().apply {
+            border = IdeBorderFactory.createTitledBorder(jvmAction.title, false)
+            addToCenter(jvmAction.createComponent(project, parent))
+          }
         add(component, bag.nextLine().next().weightx(1.0).fillCellHorizontally())
       }
     }

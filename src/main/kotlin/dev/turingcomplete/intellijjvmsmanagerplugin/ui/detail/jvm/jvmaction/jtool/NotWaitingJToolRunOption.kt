@@ -2,14 +2,15 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jto
 
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionContext
 
-class NotWaitingJToolRunOption(optionTitle: String,
-                               taskTitle: (JvmActionContext) -> String,
-                               private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>)
-  : JToolRunOption(optionTitle, taskTitle) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+class NotWaitingJToolRunOption(
+  optionTitle: String,
+  taskTitle: (JvmActionContext) -> String,
+  private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
+) : JToolRunOption(optionTitle, taskTitle) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun createJToolCommand(jvmActionContext: JvmActionContext): Pair<JTool, List<String>> {
     return createJToolCommand.invoke(jvmActionContext)
@@ -17,6 +18,6 @@ class NotWaitingJToolRunOption(optionTitle: String,
 
   override fun waitForTermination(): Boolean = false
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

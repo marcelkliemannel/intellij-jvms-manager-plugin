@@ -2,21 +2,21 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jto
 
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.OshiUtils
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionException
-import oshi.PlatformEnum
 import java.nio.file.Files
 import java.nio.file.Path
+import oshi.PlatformEnum
 
 enum class JTool(private val executableName: String) {
-  // -- Values ------------------------------------------------------------------------------------------------------ //
+  // -- Values -------------------------------------------------------------- //
 
   JSTACK("jstack"),
   JCONSOLE("jconsole"),
   JCMD("jcmd");
 
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun executable(jdkHomePath: Path): Path {
     val extension = if (OshiUtils.CURRENT_PLATFORM == PlatformEnum.WINDOWS) ".exe" else ""
@@ -28,7 +28,6 @@ enum class JTool(private val executableName: String) {
     return jToolPath
   }
 
-
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

@@ -9,24 +9,25 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.process.JvmProcessNode
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionsTab
 import java.util.*
 
-class CollectSystemPropertiesTask(project: Project,
-                                  private val processNode: JvmProcessNode,
-                                  private val onSuccess: (Properties) -> Unit,
-                                  private val onFinished: () -> Unit)
-  : Task.ConditionalModal(project, "Collecting system properties", false, DEAF) {
+class CollectSystemPropertiesTask(
+  project: Project,
+  private val processNode: JvmProcessNode,
+  private val onSuccess: (Properties) -> Unit,
+  private val onFinished: () -> Unit,
+) : Task.ConditionalModal(project, "Collecting system properties", false, DEAF) {
 
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private val LOG = Logger.getInstance(JvmActionsTab::class.java)
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private lateinit var systemProperties: Properties
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun run(indicator: ProgressIndicator) {
     systemProperties = processNode.collectSystemProperties()
@@ -41,15 +42,18 @@ class CollectSystemPropertiesTask(project: Project,
   }
 
   override fun onThrowable(error: Throwable) {
-    val errorMessage = "Failed to collect system properties of PID ${processNode.process.processID}: ${error.message}"
+    val errorMessage =
+      "Failed to collect system properties of PID ${processNode.process.processID}: ${error.message}"
     LOG.warn(errorMessage, error)
-    Messages.showErrorDialog(project,
-                             "$errorMessage\n\n" +
-                             "Try to run the 'System Properties' option under 'JVM Actions' > 'Get JVM Information'.\n\n" +
-                             "See idea.log for more details.",
-                             "Collecting System Properties Failed")
+    Messages.showErrorDialog(
+      project,
+      "$errorMessage\n\n" +
+        "Try to run the 'System Properties' option under 'JVM Actions' > 'Get JVM Information'.\n\n" +
+        "See idea.log for more details.",
+      "Collecting System Properties Failed",
+    )
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

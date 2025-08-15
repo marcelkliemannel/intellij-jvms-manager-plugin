@@ -10,26 +10,27 @@ import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.text.StringUtil
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.StringAppenderProcessAdapter
 
-class RunCommandTask(project: Project,
-                     title: String,
-                     private val errorMessage: String,
-                     private val commandLine: GeneralCommandLine,
-                     private val onSuccess: (String) -> Unit,
-                     private val onFinished: () -> Unit = {})
-  : Task.ConditionalModal(project, title, false, DEAF) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class RunCommandTask(
+  project: Project,
+  title: String,
+  private val errorMessage: String,
+  private val commandLine: GeneralCommandLine,
+  private val onSuccess: (String) -> Unit,
+  private val onFinished: () -> Unit = {},
+) : Task.ConditionalModal(project, title, false, DEAF) {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private const val TIMEOUT_MILLIS: Long = 30 * 1000
     private val LOG = Logger.getInstance(RunCommandTask::class.java)
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private var output: String = ""
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun run(indicator: ProgressIndicator) {
     LOG.info("Start command: " + commandLine.commandLineString)
@@ -58,12 +59,13 @@ class RunCommandTask(project: Project,
   override fun onThrowable(error: Throwable) {
     val enhancedErrorMessage = "$errorMessage: ${error.message}"
     LOG.warn(enhancedErrorMessage, error)
-    Messages.showErrorDialog(project,
-                             "$enhancedErrorMessage\n\n" +
-                             "See idea.log for more details.",
-                             "${StringUtil.capitalize(title)} Failed")
+    Messages.showErrorDialog(
+      project,
+      "$enhancedErrorMessage\n\n" + "See idea.log for more details.",
+      "${StringUtil.capitalize(title)} Failed",
+    )
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

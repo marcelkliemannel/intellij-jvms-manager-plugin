@@ -20,14 +20,15 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmA
 import java.nio.file.Path
 import javax.swing.Icon
 
-abstract class JToolRunOption(optionTitle: String,
-                              val taskTitle: (JvmActionContext) -> String,
-                              val icon: Icon = AllIcons.RunConfigurations.TestState.Run)
-  : DumbAwareAction(optionTitle, null, icon) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+abstract class JToolRunOption(
+  optionTitle: String,
+  val taskTitle: (JvmActionContext) -> String,
+  val icon: Icon = AllIcons.RunConfigurations.TestState.Run,
+) : DumbAwareAction(optionTitle, null, icon) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   final override fun actionPerformed(e: AnActionEvent) {
     val jvmActionContext = getRequiredData(JvmActionContext.DATA_KEY, e.dataContext)
@@ -43,8 +44,14 @@ abstract class JToolRunOption(optionTitle: String,
       return
     }
 
-    JToolActionTask(jvmActionContext, this, taskTitle(jvmActionContext),
-                    jvmActionJdk, waitForTermination()).queue()
+    JToolActionTask(
+        jvmActionContext,
+        this,
+        taskTitle(jvmActionContext),
+        jvmActionJdk,
+        waitForTermination(),
+      )
+      .queue()
   }
 
   open fun getProcessAdapter(): ProcessAdapter? = null
@@ -53,23 +60,22 @@ abstract class JToolRunOption(optionTitle: String,
 
   open fun beforeExecution(jvmActionContext: JvmActionContext): Boolean = true
 
-  open fun onSuccess(jvmActionContext: JvmActionContext) {
-  }
+  open fun onSuccess(jvmActionContext: JvmActionContext) {}
 
-  open fun onFinished(jvmActionContext: JvmActionContext) {
-  }
+  open fun onFinished(jvmActionContext: JvmActionContext) {}
 
   open fun waitForTermination(): Boolean = true
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  private class JToolActionTask(private val jvmActionContext: JvmActionContext,
-                                private val jToolRunOption: JToolRunOption,
-                                private val taskTitle: String,
-                                private val jdk: Sdk,
-                                private val waitForTermination: Boolean = true)
-    : Task.ConditionalModal(jvmActionContext.project, taskTitle, false, DEAF) {
+  private class JToolActionTask(
+    private val jvmActionContext: JvmActionContext,
+    private val jToolRunOption: JToolRunOption,
+    private val taskTitle: String,
+    private val jdk: Sdk,
+    private val waitForTermination: Boolean = true,
+  ) : Task.ConditionalModal(jvmActionContext.project, taskTitle, false, DEAF) {
 
     companion object {
       private val LOG = Logger.getInstance(JvmProcessesMainPanel::class.java)
@@ -77,13 +83,13 @@ abstract class JToolRunOption(optionTitle: String,
     }
 
     override fun run(indicator: ProgressIndicator) {
-      val jdkHomePath = jdk.homePath ?: throw JvmActionException("The selected JDK does not have a home path configured.")
+      val jdkHomePath =
+        jdk.homePath
+          ?: throw JvmActionException("The selected JDK does not have a home path configured.")
 
       val (jTool, arguments) = jToolRunOption.createJToolCommand(jvmActionContext)
       val commandLine = GeneralCommandLine(jTool.executable(Path.of(jdkHomePath)).toString())
-      arguments.forEach {
-        commandLine.addParameter(it)
-      }
+      arguments.forEach { commandLine.addParameter(it) }
 
       LOG.info("Start command: " + commandLine.commandLineString)
       val processHandler = OSProcessHandler(commandLine)
@@ -94,7 +100,9 @@ abstract class JToolRunOption(optionTitle: String,
         processHandler.startNotify()
 
         if (!processHandler.waitFor(TIMEOUT_MILLIS)) {
-          throw JvmActionException("Command execution took more than ${TIMEOUT_MILLIS / 1000} seconds.")
+          throw JvmActionException(
+            "Command execution took more than ${TIMEOUT_MILLIS / 1000} seconds."
+          )
         }
       }
     }
@@ -102,7 +110,11 @@ abstract class JToolRunOption(optionTitle: String,
     override fun onThrowable(error: Throwable) {
       val errorMessage = "Failed to run JVM Action '$taskTitle': ${error.message}"
       LOG.warn(errorMessage, error)
-      Messages.showErrorDialog(project, "$errorMessage\n\nSee idea.log for more details.", "$taskTitle failed")
+      Messages.showErrorDialog(
+        project,
+        "$errorMessage\n\nSee idea.log for more details.",
+        "$taskTitle failed",
+      )
     }
 
     override fun onSuccess() {

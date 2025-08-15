@@ -19,11 +19,12 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.io.path.outputStream
 
-class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
-                           private val defaultFileNamePrefix: String,
-                           private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>)
-  : JToolRunOption(OPTION_TITLE, taskTitle, AllIcons.Actions.MenuSaveall) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class ToFileJToolRunOption(
+  taskTitle: (JvmActionContext) -> String,
+  private val defaultFileNamePrefix: String,
+  private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
+) : JToolRunOption(OPTION_TITLE, taskTitle, AllIcons.Actions.MenuSaveall) {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     const val OPTION_TITLE = "Run - Save Output to File"
@@ -31,12 +32,12 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
     private val TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-SS")
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private var processAdapter: OutputFileProcessAdapter? = null
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun beforeExecution(jvmActionContext: JvmActionContext): Boolean {
     val fileSaverDescriptor = FileSaverDescriptor("Save Action Output As", "")
@@ -44,9 +45,14 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
     val processID = jvmActionContext.processNode.process.processID
     val defaultFilename = "$defaultFileNamePrefix${processID}_$timeStamp.txt"
     return FileChooserFactory.getInstance()
-                   .createSaveFileDialog(fileSaverDescriptor, jvmActionContext.project)
-                   .save(defaultFilename)?.file?.toPath()
-                   ?.let { this.processAdapter = OutputFileProcessAdapter(it); true } ?: false
+      .createSaveFileDialog(fileSaverDescriptor, jvmActionContext.project)
+      .save(defaultFilename)
+      ?.file
+      ?.toPath()
+      ?.let {
+        this.processAdapter = OutputFileProcessAdapter(it)
+        true
+      } ?: false
   }
 
   override fun createJToolCommand(jvmActionContext: JvmActionContext): Pair<JTool, List<String>> {
@@ -58,22 +64,28 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
   override fun onSuccess(jvmActionContext: JvmActionContext) {
     val exitCode = processAdapter!!.exitCode()
     val theTaskTitle = taskTitle(jvmActionContext)
-    val options = arrayOf(OpenOutputAction("Open Output File", processAdapter!!.outputFile),
-                          OpenOutputAction("Open Output Directory", processAdapter!!.outputFile.parent))
+    val options =
+      arrayOf(
+        OpenOutputAction("Open Output File", processAdapter!!.outputFile),
+        OpenOutputAction("Open Output Directory", processAdapter!!.outputFile.parent),
+      )
 
     if (exitCode == 0) {
-      notifyBalloon(theTaskTitle,
-                    "Output written to file: ${processAdapter!!.outputFile.fileName}",
-                    jvmActionContext.project,
-                    NotificationType.INFORMATION,
-                    *options)
-    }
-    else {
-      notifyBalloon("$theTaskTitle Failed",
-                    "Command failed with exit code: $exitCode. See output file for more information.",
-                    jvmActionContext.project,
-                    NotificationType.ERROR,
-                    *options)
+      notifyBalloon(
+        theTaskTitle,
+        "Output written to file: ${processAdapter!!.outputFile.fileName}",
+        jvmActionContext.project,
+        NotificationType.INFORMATION,
+        *options,
+      )
+    } else {
+      notifyBalloon(
+        "$theTaskTitle Failed",
+        "Command failed with exit code: $exitCode. See output file for more information.",
+        jvmActionContext.project,
+        NotificationType.ERROR,
+        *options,
+      )
     }
   }
 
@@ -82,8 +94,8 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
     processAdapter = null
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   private class OutputFileProcessAdapter(val outputFile: Path) : ProcessAdapter() {
 
@@ -105,11 +117,15 @@ class ToFileJToolRunOption(taskTitle: (JvmActionContext) -> String,
     }
 
     private fun createOutputStream(outputFile: Path): OutputStream {
-      return outputFile.outputStream(StandardOpenOption.WRITE, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)
+      return outputFile.outputStream(
+        StandardOpenOption.WRITE,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING,
+      )
     }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   private class OpenOutputAction(title: String, val output: Path) : DumbAwareAction(title) {
 

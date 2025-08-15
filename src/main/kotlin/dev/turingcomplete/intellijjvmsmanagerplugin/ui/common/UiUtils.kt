@@ -34,52 +34,59 @@ import javax.swing.plaf.LabelUI
 import javax.swing.table.DefaultTableModel
 
 internal object UiUtils {
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   val EMPTY_BORDER: Border = JBUI.Borders.empty()
   val EMPTY_FILL_PANEL: () -> JPanel = { BorderLayoutPanel().apply { border = EMPTY_BORDER } }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exported Methods -------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
-  fun createDefaultGridBag() = GridBag()
-          .setDefaultAnchor(GridBagConstraints.NORTHWEST)
-          .setDefaultInsets(0, 0, 0, 0)
-          .setDefaultFill(GridBagConstraints.NONE)
+  fun createDefaultGridBag() =
+    GridBag()
+      .setDefaultAnchor(GridBagConstraints.NORTHWEST)
+      .setDefaultInsets(0, 0, 0, 0)
+      .setDefaultFill(GridBagConstraints.NONE)
 
-  fun createCopyToClipboardButton(value: () -> String) = object : JLabel(AllIcons.Actions.Copy) {
+  fun createCopyToClipboardButton(value: () -> String) =
+    object : JLabel(AllIcons.Actions.Copy) {
 
-    init {
-      object : ClickListener() {
-        override fun onClick(e: MouseEvent, clickCount: Int): Boolean {
-          CopyPasteManager.getInstance().setContents(StringSelection(value()))
-          return true
-        }
-      }.installOn(this)
+      init {
+        object : ClickListener() {
+            override fun onClick(e: MouseEvent, clickCount: Int): Boolean {
+              CopyPasteManager.getInstance().setContents(StringSelection(value()))
+              return true
+            }
+          }
+          .installOn(this)
 
-      toolTipText = "Copy to Clipboard"
-    }
-  }
-
-  fun createCommentLabel(text: String) = object : JBLabel(text) {
-
-    init {
-      foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
+        toolTipText = "Copy to Clipboard"
+      }
     }
 
-    override fun setUI(ui: LabelUI?) {
-      super.setUI(ui)
-      font = ComponentPanelBuilder.getCommentFont(font)
+  fun createCommentLabel(text: String) =
+    object : JBLabel(text) {
+
+      init {
+        foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
+      }
+
+      override fun setUI(ui: LabelUI?) {
+        super.setUI(ui)
+        font = ComponentPanelBuilder.getCommentFont(font)
+      }
     }
-  }
 
   fun createLink(title: String, url: String): HyperlinkLabel {
-    return HyperlinkLabel(title).apply {
-      setHyperlinkTarget(url)
-    }
+    return HyperlinkLabel(title).apply { setHyperlinkTarget(url) }
   }
 
-  fun createSimpleToggleAction(text: String, icon: Icon?, isSelected: () -> Boolean, setSelected: (Boolean) -> Unit): ToggleAction {
+  fun createSimpleToggleAction(
+    text: String,
+    icon: Icon?,
+    isSelected: () -> Boolean,
+    setSelected: (Boolean) -> Unit,
+  ): ToggleAction {
 
     return object : DumbAwareToggleAction(text, "", icon) {
 
@@ -91,20 +98,26 @@ internal object UiUtils {
     }
   }
 
-  fun createContextHelpLabel(text: String) = JLabel(AllIcons.General.ContextHelp).apply {
-    toolTipText = text
-  }
+  fun createContextHelpLabel(text: String) =
+    JLabel(AllIcons.General.ContextHelp).apply { toolTipText = text }
 
   fun loadPluginIcon(iconFileName: String, width: Int = 16, height: Int = 16): ScalableIcon {
-    val icon = IconLoader.getIcon("dev/turingcomplete/intellijjvmsmanagerplugin/icons/${iconFileName}", UiUtils::class.java)
+    val icon =
+      IconLoader.getIcon(
+        "dev/turingcomplete/intellijjvmsmanagerplugin/icons/${iconFileName}",
+        UiUtils::class.java,
+      )
     return JBUIScale.scaleIcon(SizedIcon(icon, width, height))
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   object Table {
-    fun createContextMenuMouseListener(place: String, actionGroup: () -> ActionGroup?): MouseAdapter {
+    fun createContextMenuMouseListener(
+      place: String,
+      actionGroup: () -> ActionGroup?,
+    ): MouseAdapter {
       return object : MouseAdapter() {
         override fun mousePressed(e: MouseEvent) {
           handleMouseEvent(e)
@@ -118,8 +131,9 @@ internal object UiUtils {
           if (e is MouseEvent && e.isPopupTrigger) {
             actionGroup()?.let {
               ActionManager.getInstance()
-                      .createActionPopupMenu(place, it).component
-                      .show(e.getComponent(), e.x, e.y)
+                .createActionPopupMenu(place, it)
+                .component
+                .show(e.getComponent(), e.x, e.y)
             }
           }
         }
@@ -136,7 +150,10 @@ internal object UiUtils {
       return this
     }
 
-    fun createNonEditableDataModel(data: Array<Array<String>>, columnNames: Array<String>): DefaultTableModel {
+    fun createNonEditableDataModel(
+      data: Array<Array<String>>,
+      columnNames: Array<String>,
+    ): DefaultTableModel {
       return object : DefaultTableModel(data, columnNames) {
 
         override fun isCellEditable(row: Int, column: Int): Boolean {
@@ -146,22 +163,24 @@ internal object UiUtils {
     }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   object Panel {
-    class TextAreaPanel(private val content: String, softWrap: Boolean = true, private var breakCommands: Boolean = false)
-      : BorderLayoutPanel() {
+    class TextAreaPanel(
+      private val content: String,
+      softWrap: Boolean = true,
+      private var breakCommands: Boolean = false,
+    ) : BorderLayoutPanel() {
 
       companion object {
-        // Matches a white space and a dash if they are not in quotes: https://stackoverflow.com/a/28194133/7059880
+        // Matches a white space and a dash if they are not in quotes:
+        // https://stackoverflow.com/a/28194133/7059880
         private val COMMAND_START_REGEX = Regex("\\s+-(?=([^\"]*\"[^\"]*\")*[^\"]*\$)")
       }
 
-      private val textArea = JBTextArea(content).apply {
-        isEditable = false
-      }
+      private val textArea = JBTextArea(content).apply { isEditable = false }
 
       init {
         minimumSize = Dimension(150, 50)
@@ -172,15 +191,20 @@ internal object UiUtils {
 
         textArea.caretPosition = 0
 
-        addToCenter(ScrollPaneFactory.createScrollPane(textArea).apply {
-          minimumSize = this@TextAreaPanel.minimumSize
-          preferredSize = this@TextAreaPanel.preferredSize
-        })
+        addToCenter(
+          ScrollPaneFactory.createScrollPane(textArea).apply {
+            minimumSize = this@TextAreaPanel.minimumSize
+            preferredSize = this@TextAreaPanel.preferredSize
+          }
+        )
       }
 
       fun setBreakCommands(breakCommands: Boolean) {
         this.breakCommands = breakCommands
-        textArea.text = if (breakCommands) content.replace(COMMAND_START_REGEX, " \\\\ ${System.lineSeparator()}  -") else content
+        textArea.text =
+          if (breakCommands)
+            content.replace(COMMAND_START_REGEX, " \\\\ ${System.lineSeparator()}  -")
+          else content
       }
 
       fun isBreakCommands(): Boolean = breakCommands
@@ -208,7 +232,6 @@ fun GridBag.overrideTopInset(topInset: Int): GridBag {
   this.insets(topInset, this.insets.left, this.insets.bottom, this.insets.right)
   return this
 }
-
 
 fun JBLabel.copyable(): JBLabel {
   setCopyable(true)

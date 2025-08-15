@@ -8,21 +8,30 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.DetailTab
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.ProcessNodeDetails
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionsTab
 
-class JvmProcessNodeDetails(project: Project,
-                            showParentProcessDetails: (ProcessNode) -> Unit,
-                            initialProcessNode: JvmProcessNode,
-                            parent: Disposable)
-  : ProcessNodeDetails<JvmProcessNode>(project, showParentProcessDetails, initialProcessNode, parent) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+class JvmProcessNodeDetails(
+  project: Project,
+  showParentProcessDetails: (ProcessNode) -> Unit,
+  initialProcessNode: JvmProcessNode,
+  parent: Disposable,
+) :
+  ProcessNodeDetails<JvmProcessNode>(
+    project,
+    showParentProcessDetails,
+    initialProcessNode,
+    parent,
+  ) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun createTabs(): List<DetailTab<JvmProcessNode>> {
-    return listOf(JvmProcessTab(project, showParentProcessDetails, processNode),
-                  JvmActionsTab(project, processNode))
+    return listOf(
+      JvmProcessTab(project, showParentProcessDetails, processNode),
+      JvmActionsTab(project, processNode),
+    )
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

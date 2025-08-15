@@ -21,20 +21,21 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.process.stateDescription
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.*
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.RunCommandTask
-import org.apache.commons.io.FileUtils
-import oshi.PlatformEnum.*
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.event.HyperlinkEvent
+import org.apache.commons.io.FileUtils
+import oshi.PlatformEnum.*
 
-open class ProcessTab<T : ProcessNode>(protected val project: Project,
-                                       protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
-                                       initialProcessNode: T,
-                                       title: String = "Process") :
-  DetailTab<T>(title, initialProcessNode) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+open class ProcessTab<T : ProcessNode>(
+  protected val project: Project,
+  protected val showParentProcessNodeDetails: (ProcessNode) -> Unit,
+  initialProcessNode: T,
+  title: String = "Process",
+) : DetailTab<T>(title, initialProcessNode) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val processDescriptionPanel = ProcessDescriptionPanel(project)
 
@@ -63,171 +64,438 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
   private val contextSwitchesLabel = JBLabel().copyable()
   private val collectedAtLabel = JBLabel("", UIUtil.ComponentStyle.SMALL, UIUtil.FontColor.BRIGHTER)
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
-  final override fun createComponent(parent: Disposable): JComponent = object : JPanel(GridBagLayout()), DataProvider {
-    init {
-      border = JBUI.Borders.empty(UIUtil.PANEL_REGULAR_INSETS)
+  final override fun createComponent(parent: Disposable): JComponent =
+    object : JPanel(GridBagLayout()), DataProvider {
+      init {
+        border = JBUI.Borders.empty(UIUtil.PANEL_REGULAR_INSETS)
 
-      val bag = UiUtils.createDefaultGridBag()
+        val bag = UiUtils.createDefaultGridBag()
 
-      add(processDescriptionPanel, bag.nextLine().next().coverLine().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+        add(
+          processDescriptionPanel,
+          bag
+            .nextLine()
+            .next()
+            .coverLine()
+            .weightx(1.0)
+            .overrideTopInset(UIUtil.DEFAULT_HGAP / 2)
+            .fillCellHorizontally(),
+        )
 
-      add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP))
-      add(pidLabel, bag.next().overrideTopInset(UIUtil.DEFAULT_HGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
+        add(JBLabel("PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP))
+        add(
+          pidLabel,
+          bag
+            .next()
+            .overrideTopInset(UIUtil.DEFAULT_HGAP)
+            .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+            .weightx(1.0)
+            .fillCellHorizontally(),
+        )
 
-      add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(parentProcessWrapper, bag.next().overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).weightx(1.0).fillCellHorizontally())
+        add(JBLabel("Parent PID:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+        add(
+          parentProcessWrapper,
+          bag
+            .next()
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+            .weightx(1.0)
+            .fillCellHorizontally(),
+        )
 
-      addAdditionalMainInformation(bag)
+        addAdditionalMainInformation(bag)
 
-      add(HyperlinkLabel("Show full path").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show full path of PID ${processNode.process.processID}", processNode.process.path ?: "", hyperlinkLabel) }
-      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.LARGE_VGAP).fillCellHorizontally())
+        add(
+          HyperlinkLabel("Show full path").also { hyperlinkLabel ->
+            hyperlinkLabel.addHyperlinkListener {
+              TextPopup.showAbove(
+                "Show full path of PID ${processNode.process.processID}",
+                processNode.process.path ?: "",
+                hyperlinkLabel,
+              )
+            }
+          },
+          bag
+            .nextLine()
+            .next()
+            .coverLine()
+            .overrideTopInset(UIUtil.LARGE_VGAP)
+            .fillCellHorizontally(),
+        )
 
-      add(HyperlinkLabel("Show command line").also { hyperlinkLabel ->
-        hyperlinkLabel.addHyperlinkListener { TextPopup.showAbove("Show command line of PID ${processNode.process.processID}", processNode.process.commandLine ?: "", hyperlinkLabel, breakCommandSupported = true, breakCommand = true) }
-      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+        add(
+          HyperlinkLabel("Show command line").also { hyperlinkLabel ->
+            hyperlinkLabel.addHyperlinkListener {
+              TextPopup.showAbove(
+                "Show command line of PID ${processNode.process.processID}",
+                processNode.process.commandLine ?: "",
+                hyperlinkLabel,
+                breakCommandSupported = true,
+                breakCommand = true,
+              )
+            }
+          },
+          bag
+            .nextLine()
+            .next()
+            .coverLine()
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .fillCellHorizontally(),
+        )
 
-      add(HyperlinkLabel("Open working directory").apply {
-        addHyperlinkListener(createOpenWorkingDirectoryListener())
-      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
+        add(
+          HyperlinkLabel("Open working directory").apply {
+            addHyperlinkListener(createOpenWorkingDirectoryListener())
+          },
+          bag
+            .nextLine()
+            .next()
+            .coverLine()
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .fillCellHorizontally(),
+        )
 
-      add(HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
-        hyperLinkLabel.addHyperlinkListener {
-          val columnNames = arrayOf("Key", "Value")
-          val data = processNode.process.environmentVariables.map { arrayOf(it.key, it.value) }.sortedBy { it[0] }.toTypedArray()
-          TablePopup("Environment variables of PID ${processNode.process.processID}", data, columnNames, "Environment Variable", "Environment Variables")
-                  .showAbove(hyperLinkLabel)
+        add(
+          HyperlinkLabel("Show environment variables").also { hyperLinkLabel ->
+            hyperLinkLabel.addHyperlinkListener {
+              val columnNames = arrayOf("Key", "Value")
+              val data =
+                processNode.process.environmentVariables
+                  .map { arrayOf(it.key, it.value) }
+                  .sortedBy { it[0] }
+                  .toTypedArray()
+              TablePopup(
+                  "Environment variables of PID ${processNode.process.processID}",
+                  data,
+                  columnNames,
+                  "Environment Variable",
+                  "Environment Variables",
+                )
+                .showAbove(hyperLinkLabel)
+            }
+          },
+          bag
+            .nextLine()
+            .next()
+            .coverLine()
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .fillCellHorizontally(),
+        )
+
+        add(
+          createDetailsComponent(),
+          bag
+            .nextLine()
+            .next()
+            .overrideTopInset(UIUtil.LARGE_VGAP)
+            .coverLine()
+            .weightx(1.0)
+            .fillCellHorizontally(),
+        )
+
+        add(
+          collectedAtLabel,
+          bag
+            .nextLine()
+            .next()
+            .overrideTopInset(UIUtil.LARGE_VGAP)
+            .coverLine()
+            .weightx(1.0)
+            .fillCellHorizontally(),
+        )
+
+        // Fill rest of panel
+        add(
+          UiUtils.EMPTY_FILL_PANEL(),
+          bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell(),
+        )
+
+        processNodeUpdated()
+
+        UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
+        UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
+      }
+
+      override fun getData(dataId: String): Any? =
+        when {
+          CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY.`is`(dataId) ->
+            listOf<ProcessNode>(processNode)
+          else -> null
         }
-      }, bag.nextLine().next().coverLine().overrideTopInset(UIUtil.DEFAULT_VGAP).fillCellHorizontally())
-
-      add(createDetailsComponent(), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
-
-      add(collectedAtLabel, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP).coverLine().weightx(1.0).fillCellHorizontally())
-
-      // Fill rest of panel
-      add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).weighty(1.0).fillCell())
-
-      processNodeUpdated()
-
-      UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
-      UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
     }
-
-    override fun getData(dataId: String): Any? = when {
-      CommonsDataKeys.SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> listOf<ProcessNode>(processNode)
-      else -> null
-    }
-  }
 
   private fun createOpenWorkingDirectoryListener(): (e: HyperlinkEvent) -> Unit = {
     val currentWorkingDirectory = processNode.process.currentWorkingDirectory
     if (currentWorkingDirectory == null) {
-      Messages.showErrorDialog(project,
-                               "The working directory of this process is unknown.",
-                               "Open Working Directory Failed")
-    }
-    else {
+      Messages.showErrorDialog(
+        project,
+        "The working directory of this process is unknown.",
+        "Open Working Directory Failed",
+      )
+    } else {
       BrowserUtil.browse(currentWorkingDirectory)
     }
   }
 
-  private fun createDetailsComponent(): JPanel = JPanel(GridBagLayout()).apply {
-    val bag = UiUtils.createDefaultGridBag()
+  private fun createDetailsComponent(): JPanel =
+    JPanel(GridBagLayout()).apply {
+      val bag = UiUtils.createDefaultGridBag()
 
-    add(JBLabel("In state:"), bag.nextLine().next())
-    add(stateLabel, bag.next().weightx(1.0).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("In state:"), bag.nextLine().next())
+      add(
+        stateLabel,
+        bag.next().weightx(1.0).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally(),
+      )
 
-    add(JBLabel("Priority:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(priorityLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Priority:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        priorityLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
+      add(JBLabel("Start time:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(
+        startTimeLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Start time:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(startTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Up time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        upTimeLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Up time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(upTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("User time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        userTimeLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("User time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(userTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Kernel time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        kernelTimeLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Kernel time:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(kernelTimeLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(
+        JBLabel("RSS memory:").apply {
+          toolTipText =
+            "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."
+        },
+        bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP),
+      )
+      add(
+        rssLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
+      add(
+        JBLabel("VSZ memory:").apply {
+          toolTipText =
+            "The virtual memory size (VSZ) shows all memory that the process can access, including memory that is swapped out and memory that is from shared libraries."
+        },
+        bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP),
+      )
+      add(
+        vszLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("RSS memory:").apply {
-      toolTipText = "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."
-    }, bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(rssLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("User:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(
+        userLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("VSZ memory:").apply {
-      toolTipText = "The virtual memory size (VSZ) shows all memory that the process can access, including memory that is swapped out and memory that is from shared libraries."
-    }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(vszLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Group:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        groupLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
+      add(JBLabel("OS threads:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(
+        osThreadsHyperlinkLabel.apply { addHyperlinkListener(createOsThreadsHyperlinkListener()) },
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("User:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(userLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Read:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        readLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Group:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(groupLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        writtenLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
+      add(JBLabel("Files handles:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      val openFilesComponent =
+        if (isPlatform(LINUX, MACOS)) {
+          listOpenFileHandlesHyperlinkLabel.apply {
+            setHyperlinkText("List open file handles")
+            addHyperlinkListener(createListOpenFileHandlesHyperlinkListener())
+          }
+        } else {
+          openFilesLabel
+        }
+      add(
+        openFilesComponent,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("OS threads:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(osThreadsHyperlinkLabel.apply {
-      addHyperlinkListener(createOsThreadsHyperlinkListener())
-    }, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      if (isPlatform(LINUX, MACOS, WINDOWS)) {
+        add(
+          listOpenPortsHyperlinkLabel.apply {
+            setHyperlinkText("List open ports")
+            addHyperlinkListener(createListOpenPortsHyperlinkListener())
+          },
+          bag
+            .nextLine()
+            .next()
+            .weightx(1.0)
+            .coverLine()
+            .fillCellHorizontally()
+            .overrideTopInset(UIUtil.DEFAULT_VGAP),
+        )
+      }
 
-    add(JBLabel("Read:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(readLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
+      add(
+        bitnessLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Written:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(writtenLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
+      add(JBLabel("Affinity mask:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+      add(
+        affinityMaskLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.DEFAULT_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
 
-    add(JBLabel("Files handles:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    val openFilesComponent = if (isPlatform(LINUX, MACOS)) {
-      listOpenFileHandlesHyperlinkLabel.apply {
-        setHyperlinkText("List open file handles")
-        addHyperlinkListener(createListOpenFileHandlesHyperlinkListener())
+      add(
+        JBLabel(if (WINDOWS == OshiUtils.CURRENT_PLATFORM) "Faults:" else "Minor faults:"),
+        bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP),
+      )
+      add(
+        minorFailsLabel,
+        bag
+          .next()
+          .weightx(1.0)
+          .overrideTopInset(UIUtil.LARGE_VGAP)
+          .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+          .fillCellHorizontally(),
+      )
+
+      if (WINDOWS != OshiUtils.CURRENT_PLATFORM) {
+        add(JBLabel("Major faults:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
+        add(
+          majorFailsLabel,
+          bag
+            .next()
+            .weightx(1.0)
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+            .fillCellHorizontally(),
+        )
+
+        add(
+          JBLabel("Ctx. switches:").apply { toolTipText = "Context switches" },
+          bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP),
+        )
+        add(
+          contextSwitchesLabel,
+          bag
+            .next()
+            .weightx(1.0)
+            .overrideTopInset(UIUtil.DEFAULT_VGAP)
+            .overrideLeftInset(UIUtil.DEFAULT_HGAP / 2)
+            .fillCellHorizontally(),
+        )
       }
     }
-    else {
-      openFilesLabel
-    }
-    add(openFilesComponent, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
 
-    if (isPlatform(LINUX, MACOS, WINDOWS)) {
-      add(listOpenPortsHyperlinkLabel.apply {
-        setHyperlinkText("List open ports")
-        addHyperlinkListener(createListOpenPortsHyperlinkListener())
-      }, bag.nextLine().next().weightx(1.0).coverLine().fillCellHorizontally().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    }
-
-    add(JBLabel("Bitness:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(bitnessLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-
-    add(JBLabel("Affinity mask:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-    add(affinityMaskLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-
-
-    add(JBLabel(if (WINDOWS == OshiUtils.CURRENT_PLATFORM) "Faults:" else "Minor faults:"), bag.nextLine().next().overrideTopInset(UIUtil.LARGE_VGAP))
-    add(minorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.LARGE_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-
-    if (WINDOWS != OshiUtils.CURRENT_PLATFORM) {
-      add(JBLabel("Major faults:"), bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(majorFailsLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-
-      add(JBLabel("Ctx. switches:").apply {
-        toolTipText = "Context switches"
-      }, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP))
-      add(contextSwitchesLabel, bag.next().weightx(1.0).overrideTopInset(UIUtil.DEFAULT_VGAP).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2).fillCellHorizontally())
-    }
-  }
-
-  protected open fun JPanel.addAdditionalMainInformation(bag: GridBag) {
-  }
+  protected open fun JPanel.addAdditionalMainInformation(bag: GridBag) {}
 
   override fun processNodeUpdated() {
     processDescriptionPanel.processNodeUpdated(processNode)
@@ -258,9 +526,11 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
 
     osThreadsHyperlinkLabel.setHyperlinkText(process.threadCount.toString())
     val bytesRead = process.bytesRead
-    readLabel.text = "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
+    readLabel.text =
+      "${FileUtils.byteCountToDisplaySize(bytesRead)}${if (bytesRead == 0L) " / Unknown" else ""}"
     val bytesWritten = process.bytesWritten
-    writtenLabel.text = "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
+    writtenLabel.text =
+      "${FileUtils.byteCountToDisplaySize(bytesWritten)}${if (bytesWritten == 0L) " / Unknown" else ""}"
 
     val openFilesValues = process.openFiles.takeIf { it >= 0 }?.toString() ?: "Unknown"
     openFilesLabel.text = openFilesValues
@@ -275,10 +545,11 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
       contextSwitchesLabel.text = process.contextSwitches.toString()
     }
 
-    collectedAtLabel.text = "Collected at: ${DateFormatUtil.formatDate(processNode.collectedAtMillis)} ${DateFormatUtil.formatTimeWithSeconds(processNode.collectedAtMillis)}"
+    collectedAtLabel.text =
+      "Collected at: ${DateFormatUtil.formatDate(processNode.collectedAtMillis)} ${DateFormatUtil.formatTimeWithSeconds(processNode.collectedAtMillis)}"
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun createParentProcessComponent(processNode: ProcessNode): JComponent {
     val parentProcessId = processNode.process.parentProcessID
@@ -289,32 +560,48 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
     }
 
     val parentProcessNode = processNode.parent
-    val hyperlinkText: String? = when {
-      parentProcessNode is ProcessNode -> "$parentProcessId | ${parentProcessNode.processDescription()}"
-      parentProcessId > 0 -> parentProcessId.toString()
-      else -> null
-    }
+    val hyperlinkText: String? =
+      when {
+        parentProcessNode is ProcessNode ->
+          "$parentProcessId | ${parentProcessNode.processDescription()}"
+        parentProcessId > 0 -> parentProcessId.toString()
+        else -> null
+      }
 
     return if (hyperlinkText != null) {
-      HyperlinkLabel(hyperlinkText).apply { addHyperlinkListener { showParentProcessNodeDetails(processNode) } }
-    }
-    else {
+      HyperlinkLabel(hyperlinkText).apply {
+        addHyperlinkListener { showParentProcessNodeDetails(processNode) }
+      }
+    } else {
       JBLabel("Unknown")
     }
   }
 
   private fun createOsThreadsHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
     val columnNames = arrayOf("ID", "Name", "State", "Priority", "Start Time", "Up Time")
-    val data = processNode.process.threadDetails.map {
-      arrayOf(it.threadId.toString(),
-              it.name.ifBlank { "Unknown" },
-              it.state.name,
-              it.priority.toString(),
-              DateFormatUtil.formatDateTime(it.startTime),
-              StringUtil.formatDuration(it.upTime))
-    }.toTypedArray()
-    TablePopup("Operating System Threads of PID ${processNode.process.processID}", data, columnNames, "Thread Information", "Thread Information") { it.joinToString("\t") }
-            .showAbove(osThreadsHyperlinkLabel)
+    val data =
+      processNode.process.threadDetails
+        .map {
+          arrayOf(
+            it.threadId.toString(),
+            it.name.ifBlank { "Unknown" },
+            it.state.name,
+            it.priority.toString(),
+            DateFormatUtil.formatDateTime(it.startTime),
+            StringUtil.formatDuration(it.upTime),
+          )
+        }
+        .toTypedArray()
+    TablePopup(
+        "Operating System Threads of PID ${processNode.process.processID}",
+        data,
+        columnNames,
+        "Thread Information",
+        "Thread Information",
+      ) {
+        it.joinToString("\t")
+      }
+      .showAbove(osThreadsHyperlinkLabel)
   }
 
   private fun createListOpenFileHandlesHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
@@ -322,24 +609,61 @@ open class ProcessTab<T : ProcessNode>(protected val project: Project,
 
     val pid = processNode.process.processID.toString()
     val commandLine = GeneralCommandLine("lsof", "-p", pid)
-    RunCommandTask(project, "Collecting open file handles", "Failed to collect open file handles of PID $pid", commandLine, { output ->
-      TextPopup.showCenteredInCurrentWindow("Open File Handles of PID $pid", output, project, softWrap = false, wide = true)
-    }).queue()
+    RunCommandTask(
+        project,
+        "Collecting open file handles",
+        "Failed to collect open file handles of PID $pid",
+        commandLine,
+        { output ->
+          TextPopup.showCenteredInCurrentWindow(
+            "Open File Handles of PID $pid",
+            output,
+            project,
+            softWrap = false,
+            wide = true,
+          )
+        },
+      )
+      .queue()
   }
 
   private fun createListOpenPortsHyperlinkListener(): (e: HyperlinkEvent) -> Unit = {
     assert(isPlatform(WINDOWS, LINUX, MACOS))
 
     val pid = processNode.process.processID.toString()
-    val commandLine = when {
-      isPlatform(WINDOWS) -> GeneralCommandLine("powershell", "-inputformat", "none", "-outputformat", "text", "-NonInteractive", "-Command", "get-nettcpconnection | where {(\$_.OwningProcess -eq ${pid})}")
-      isPlatform(LINUX, MACOS) -> GeneralCommandLine("lsof", "-Pan", "-p", pid, "-i")
-      else -> throw IllegalStateException("snh: Platform not supported")
-    }
-    RunCommandTask(project, "Collecting open ports", "Failed to collect open ports of PID $pid", commandLine, { output ->
-      TextPopup.showCenteredInCurrentWindow("Open Ports of PID $pid", output, project, softWrap = false, wide = true)
-    }).queue()
+    val commandLine =
+      when {
+        isPlatform(WINDOWS) ->
+          GeneralCommandLine(
+            "powershell",
+            "-inputformat",
+            "none",
+            "-outputformat",
+            "text",
+            "-NonInteractive",
+            "-Command",
+            "get-nettcpconnection | where {(\$_.OwningProcess -eq ${pid})}",
+          )
+        isPlatform(LINUX, MACOS) -> GeneralCommandLine("lsof", "-Pan", "-p", pid, "-i")
+        else -> throw IllegalStateException("snh: Platform not supported")
+      }
+    RunCommandTask(
+        project,
+        "Collecting open ports",
+        "Failed to collect open ports of PID $pid",
+        commandLine,
+        { output ->
+          TextPopup.showCenteredInCurrentWindow(
+            "Open Ports of PID $pid",
+            output,
+            project,
+            softWrap = false,
+            wide = true,
+          )
+        },
+      )
+      .queue()
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

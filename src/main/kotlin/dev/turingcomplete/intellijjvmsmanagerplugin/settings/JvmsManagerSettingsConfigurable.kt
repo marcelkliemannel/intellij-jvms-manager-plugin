@@ -5,10 +5,10 @@ import java.util.*
 import javax.swing.JComponent
 
 class JvmsManagerSettingsConfigurable : Configurable {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   private var settingsComponent: JvmsManagerSettingsComponent? = null
 
@@ -27,8 +27,12 @@ class JvmsManagerSettingsConfigurable : Configurable {
 
   override fun isModified(): Boolean {
     val settings: JvmsManagerSettingsService = JvmsManagerSettingsService.getInstance()
-    return !Objects.equals(settings.jvmActionsJdkName, settingsComponent!!.getSelectedJvmActionsJdk())
-           || settings.collectJvmProcessesOnToolWindowOpen != settingsComponent!!.getCollectJvmProcessesOnToolWindowOpen()
+    return !Objects.equals(
+      settings.jvmActionsJdkName,
+      settingsComponent!!.getSelectedJvmActionsJdk(),
+    ) ||
+      settings.collectJvmProcessesOnToolWindowOpen !=
+        settingsComponent!!.getCollectJvmProcessesOnToolWindowOpen()
   }
 
   override fun apply() {
@@ -51,7 +55,6 @@ class JvmsManagerSettingsConfigurable : Configurable {
     settingsComponent = null
   }
 
-
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

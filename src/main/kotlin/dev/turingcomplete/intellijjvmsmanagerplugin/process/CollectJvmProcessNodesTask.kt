@@ -11,41 +11,39 @@ import oshi.software.os.OperatingSystem
 import oshi.software.os.OperatingSystem.ProcessSorting
 
 /**
- * Collects all known [JvmProcessNode], which can be retrieved via the
- * [VirtualMachine] API.
+ * Collects all known [JvmProcessNode], which can be retrieved via the [VirtualMachine] API.
  *
- * If a Java process is a child process of another Java process, it will be
- * added as a child node to its parent process node, and will not be present
- * in the top-level list.
+ * If a Java process is a child process of another Java process, it will be added as a child node to
+ * its parent process node, and will not be present in the top-level list.
  *
- * The current implementation retrieves a list of all [OSProcess] at once,
- * searches for the [OSProcess] of all known JVM PIDs in that list and then
- * recursively builds the children tree based on that list. An alternative
- * implementation could use the methods [OperatingSystem.getProcess] and
- * [OperatingSystem.getChildProcesses] from the Oshi library. However, after
- * some performance testing, calling these methods multiple times is several
- * orders of magnitude slower than the current approach. (The reason for this,
- * at least until Oshi version 6, is that each of these methods first retrieves
- * all processes and then filters out only the desired ones.)
+ * The current implementation retrieves a list of all [OSProcess] at once, searches for the
+ * [OSProcess] of all known JVM PIDs in that list and then recursively builds the children tree
+ * based on that list. An alternative implementation could use the methods
+ * [OperatingSystem.getProcess] and [OperatingSystem.getChildProcesses] from the Oshi library.
+ * However, after some performance testing, calling these methods multiple times is several orders
+ * of magnitude slower than the current approach. (The reason for this, at least until Oshi version
+ * 6, is that each of these methods first retrieves all processes and then filters out only the
+ * desired ones.)
  */
-class CollectJvmProcessNodesTask(project: Project?,
-                                 private val onSuccess: (List<JvmProcessNode>) -> Unit,
-                                 private val onFinished: () -> Unit,
-                                 private val onThrowable: (Throwable) -> Unit)
-  : Task.Backgroundable(project, "Collecting JVM processes") {
+class CollectJvmProcessNodesTask(
+  project: Project?,
+  private val onSuccess: (List<JvmProcessNode>) -> Unit,
+  private val onFinished: () -> Unit,
+  private val onThrowable: (Throwable) -> Unit,
+) : Task.Backgroundable(project, "Collecting JVM processes") {
 
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private val LOG = Logger.getInstance(CollectJvmProcessNodesTask::class.java)
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val topLevelJvmProcessNodes = mutableListOf<JvmProcessNode>()
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun run(progressIndicator: ProgressIndicator) {
     val startMillis = System.currentTimeMillis()
@@ -53,8 +51,10 @@ class CollectJvmProcessNodesTask(project: Project?,
     topLevelJvmProcessNodes.clear()
 
     // Collect all processes current running on the machine.
-    val allProcesses = OshiUtils.OPERATION_SYSTEM.getProcesses(null, ProcessSorting.NO_SORTING, 0)
-            .associateBy { it.processID }
+    val allProcesses =
+      OshiUtils.OPERATION_SYSTEM.getProcesses(null, ProcessSorting.NO_SORTING, 0).associateBy {
+        it.processID
+      }
 
     // Collect all known Java processes.
     // All real top-level Java processes will be added to the result
@@ -73,8 +73,7 @@ class CollectJvmProcessNodesTask(project: Project?,
       val isTopLevel = process.parentProcessID == 1 || process.parentProcessID == 0
       if (isTopLevel) {
         topLevelJvmProcessNodes.add(jvmProcessNode)
-      }
-      else {
+      } else {
         remainingJvmProcessNodesToAssociate[pid] = jvmProcessNode
       }
     }
@@ -99,7 +98,9 @@ class CollectJvmProcessNodesTask(project: Project?,
 
     topLevelJvmProcessNodes.sortWith { a, b -> a.process.processID.compareTo(b.process.processID) }
 
-    LOG.debug("Took " + (System.currentTimeMillis() - startMillis) + " ms to collect all Java processes.")
+    LOG.debug(
+      "Took " + (System.currentTimeMillis() - startMillis) + " ms to collect all Java processes."
+    )
   }
 
   override fun onSuccess() {
@@ -114,15 +115,25 @@ class CollectJvmProcessNodesTask(project: Project?,
     onThrowable.invoke(error)
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
-  private fun collectChildren(processes: Map<Int, OSProcess>, parent: ProcessNode, javaProcessesToAssociate: MutableMap<Int, JvmProcessNode>) {
-    processes.filter { it.value.parentProcessID == parent.process.processID }.map { childProcess ->
-      val childProcessNode = javaProcessesToAssociate.remove(childProcess.value.processID) ?: ProcessNode(childProcess.value)
-      collectChildren(processes, childProcessNode, javaProcessesToAssociate)
-      childProcessNode
-    }.sortedBy { childProcessNode -> childProcessNode.process.processID }.forEach { parent.add(it) }
+  private fun collectChildren(
+    processes: Map<Int, OSProcess>,
+    parent: ProcessNode,
+    javaProcessesToAssociate: MutableMap<Int, JvmProcessNode>,
+  ) {
+    processes
+      .filter { it.value.parentProcessID == parent.process.processID }
+      .map { childProcess ->
+        val childProcessNode =
+          javaProcessesToAssociate.remove(childProcess.value.processID)
+            ?: ProcessNode(childProcess.value)
+        collectChildren(processes, childProcessNode, javaProcessesToAssociate)
+        childProcessNode
+      }
+      .sortedBy { childProcessNode -> childProcessNode.process.processID }
+      .forEach { parent.add(it) }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

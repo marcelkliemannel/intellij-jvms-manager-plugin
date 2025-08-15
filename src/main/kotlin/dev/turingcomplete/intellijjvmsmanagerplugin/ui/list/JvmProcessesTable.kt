@@ -29,35 +29,43 @@ import javax.swing.JTable
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
-class JvmProcessesTable(private val project: Project)
-  : TreeTable(ListTreeTableModelOnColumns(DefaultMutableTreeNode(), createProcessesTableColumns())), DataProvider {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class JvmProcessesTable(private val project: Project) :
+  TreeTable(ListTreeTableModelOnColumns(DefaultMutableTreeNode(), createProcessesTableColumns())),
+  DataProvider {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private fun createProcessesTableColumns(): Array<ColumnInfo<Any, out Any>> {
-      return arrayOf(TreeColumnInfo("PID"),
-                     ProcessNodeColumnInfo("Name", { it.smartName }),
-                     ProcessNodeColumnInfo("RSS", { StringUtil.formatFileSize(it.process.residentSetSize) },
-                                           "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM."),
-                     ProcessNodeColumnInfo("Uptime", { StringUtil.formatDuration(it.process.upTime) }))
+      return arrayOf(
+        TreeColumnInfo("PID"),
+        ProcessNodeColumnInfo("Name", { it.smartName }),
+        ProcessNodeColumnInfo(
+          "RSS",
+          { StringUtil.formatFileSize(it.process.residentSetSize) },
+          "The resident set size (RSS) shows how much memory is allocated to this process and is in RAM.",
+        ),
+        ProcessNodeColumnInfo("Uptime", { StringUtil.formatDuration(it.process.upTime) }),
+      )
     }
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val createContextMenuActions: ActionGroup by lazy { createContextMenuActions() }
   private var setJvmProcessNodesCalledAtLeastOnce = false
   val treeExpander = DefaultTreeTableExpander(this)
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
 
   init {
     setTreeCellRenderer(MyTreeTableCellRenderer())
     setDefaultRenderer(String::class.java, MyTableCellRenderer())
 
-    addMouseListener(UiUtils.Table.createContextMenuMouseListener(this@JvmProcessesTable::class.qualifiedName!!) {
-      createContextMenuActions
-    })
+    addMouseListener(
+      UiUtils.Table.createContextMenuMouseListener(this@JvmProcessesTable::class.qualifiedName!!) {
+        createContextMenuActions
+      }
+    )
 
     selectionModel.addListSelectionListener {
       if (project.isDisposed) {
@@ -80,7 +88,9 @@ class JvmProcessesTable(private val project: Project)
       if (selectedIndices.size == 1) {
         tree.getPathForRow(selectedIndices[0])?.let { selectedPath ->
           val selectedProcessNode = selectedPath.lastPathComponent as ProcessNode
-          project.getService(JvmsManagerPluginService::class.java).showProcessDetails(selectedProcessNode)
+          project
+            .getService(JvmsManagerPluginService::class.java)
+            .showProcessDetails(selectedProcessNode)
         }
       }
     }
@@ -98,27 +108,32 @@ class JvmProcessesTable(private val project: Project)
     syncReloadingState(false)
 
     object : DoubleClickListener() {
-      override fun onDoubleClick(event: MouseEvent): Boolean {
-        val row: Int = rowAtPoint(event.point)
-        val column = columnAtPoint(event.point)
-        if (row >= 0 && row < getRowCount()
-            // First column already handled by the `BasicTreeUi`
-            && column > 0 && column < columnCount) {
+        override fun onDoubleClick(event: MouseEvent): Boolean {
+          val row: Int = rowAtPoint(event.point)
+          val column = columnAtPoint(event.point)
+          if (
+            row >= 0 &&
+              row < getRowCount()
+              // First column already handled by the `BasicTreeUi`
+              &&
+              column > 0 &&
+              column < columnCount
+          ) {
 
-          if (tree.isExpanded(row)) {
-            tree.collapseRow(row)
+            if (tree.isExpanded(row)) {
+              tree.collapseRow(row)
+            } else {
+              tree.expandRow(row)
+            }
+            return true
           }
-          else {
-            tree.expandRow(row)
-          }
-          return true
+          return false
         }
-        return false
       }
-    }.installOn(this)
+      .installOn(this)
   }
 
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun syncReloadingState(isReloading: Boolean) {
     isEnabled = !isReloading
@@ -127,14 +142,19 @@ class JvmProcessesTable(private val project: Project)
       clear()
       if (isReloading) {
         appendLine("Collecting JVM processes...")
-      }
-      else {
-        appendLine(if (setJvmProcessNodesCalledAtLeastOnce) "No JVM processes found" else "JVM processes have not been collected yet")
+      } else {
+        appendLine(
+          if (setJvmProcessNodesCalledAtLeastOnce) "No JVM processes found"
+          else "JVM processes have not been collected yet"
+        )
         appendLine("Collect JVM processes", SimpleTextAttributes.LINK_ATTRIBUTES) {
           project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses()
         }
         appendLine("")
-        appendLine("Configure to collect JVM processes when the tool window gets open...", SimpleTextAttributes.LINK_ATTRIBUTES) {
+        appendLine(
+          "Configure to collect JVM processes when the tool window gets open...",
+          SimpleTextAttributes.LINK_ATTRIBUTES,
+        ) {
           project.getService(JvmsManagerPluginService::class.java)?.showSettings()
         }
       }
@@ -158,12 +178,15 @@ class JvmProcessesTable(private val project: Project)
 
   override fun getData(dataId: String): Any? {
     return when {
-      SELECTED_PROCESSES_DATA_KEY.`is`(dataId) -> TreeUtil.collectSelectedPaths(this.tree).map { it.lastPathComponent }.filterIsInstance<ProcessNode>()
+      SELECTED_PROCESSES_DATA_KEY.`is`(dataId) ->
+        TreeUtil.collectSelectedPaths(this.tree)
+          .map { it.lastPathComponent }
+          .filterIsInstance<ProcessNode>()
       else -> null
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun createContextMenuActions(): ActionGroup {
     return DefaultActionGroup().apply {
@@ -180,30 +203,49 @@ class JvmProcessesTable(private val project: Project)
     processNodes.forEach { treeModel.reload(it) }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  private class ProcessNodeColumnInfo(title: String, val getValue: (ProcessNode) -> String, val toolTipText: String? = null)
-    : ColumnInfo<Any, String>(title) {
+  private class ProcessNodeColumnInfo(
+    title: String,
+    val getValue: (ProcessNode) -> String,
+    val toolTipText: String? = null,
+  ) : ColumnInfo<Any, String>(title) {
 
-    override fun valueOf(node: Any): String = if (node is ProcessNode) getValue(node) else node.toString()
+    override fun valueOf(node: Any): String =
+      if (node is ProcessNode) getValue(node) else node.toString()
 
     override fun getTooltipText(): String? = toolTipText
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   private class MyTableCellRenderer : ColoredTableCellRenderer() {
 
-    override fun customizeCellRenderer(table: JTable, value: Any?, selected: Boolean, hasFocus: Boolean, row: Int, column: Int) {
+    override fun customizeCellRenderer(
+      table: JTable,
+      value: Any?,
+      selected: Boolean,
+      hasFocus: Boolean,
+      row: Int,
+      column: Int,
+    ) {
       append(value as String)
     }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   private class MyTreeTableCellRenderer : ColoredTreeCellRenderer() {
 
-    override fun customizeCellRenderer(tree: JTree, value: Any?, selected: Boolean, expanded: Boolean, leaf: Boolean, row: Int, hasFocus: Boolean) {
+    override fun customizeCellRenderer(
+      tree: JTree,
+      value: Any?,
+      selected: Boolean,
+      expanded: Boolean,
+      leaf: Boolean,
+      row: Int,
+      hasFocus: Boolean,
+    ) {
       if (value !is ProcessNode) {
         return
       }

@@ -6,17 +6,17 @@ import javax.swing.JComponent
 import kotlin.properties.Delegates
 
 abstract class DetailTab<T : ProcessNode>(val title: String, initialProcessNode: T) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   var processNode: T by Delegates.observable(initialProcessNode) { _, _, _ -> processNodeUpdated() }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   abstract fun createComponent(parent: Disposable): JComponent
 
   abstract fun processNodeUpdated()
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }
