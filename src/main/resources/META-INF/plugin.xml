@@ -1,6 +1,4 @@
 <idea-plugin>
-  <id>dev.turingcomplete.intellijjvmsmanagerplugin</id>
-  <name>JVMs Manager</name>
   <vendor email="dev@marcelkliemannel.com" url="https://marcelkliemannel.com/projects/intellij-jvms-manager-plugin">
     Marcel Kliemannel
   </vendor>
