@@ -2,7 +2,7 @@ package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jto
 
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.OSProcessHandler
-import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessListener
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.diagnostic.Logger
@@ -24,11 +24,16 @@ abstract class JToolRunOption(
   optionTitle: String,
   val taskTitle: (JvmActionContext) -> String,
   val icon: Icon = AllIcons.RunConfigurations.TestState.Run,
+  private val available: () -> Boolean = { true }
 ) : DumbAwareAction(optionTitle, null, icon) {
   // -- Companion Object ---------------------------------------------------- //
   // -- Properties ---------------------------------------------------------- //
   // -- Initialization ------------------------------------------------------ //
   // -- Exported Methods ---------------------------------------------------- //
+
+  override fun update(e: AnActionEvent) {
+    e.presentation.isEnabledAndVisible = available()
+  }
 
   final override fun actionPerformed(e: AnActionEvent) {
     val jvmActionContext = getRequiredData(JvmActionContext.DATA_KEY, e.dataContext)
@@ -54,7 +59,7 @@ abstract class JToolRunOption(
       .queue()
   }
 
-  open fun getProcessAdapter(): ProcessAdapter? = null
+  open fun getProcessListener(): ProcessListener? = null
 
   abstract fun createJToolCommand(jvmActionContext: JvmActionContext): Pair<JTool, List<String>>
 
@@ -96,7 +101,7 @@ abstract class JToolRunOption(
 
       if (waitForTermination) {
         LOG.assertTrue(!processHandler.isStartNotified)
-        jToolRunOption.getProcessAdapter()?.let { processHandler.addProcessListener(it) }
+        jToolRunOption.getProcessListener()?.let { processHandler.addProcessListener(it) }
         processHandler.startNotify()
 
         if (!processHandler.waitFor(TIMEOUT_MILLIS)) {

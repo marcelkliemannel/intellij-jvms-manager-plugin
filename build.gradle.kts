@@ -81,6 +81,7 @@ dependencies {
     exclude(group = "net.java.dev.jna", module = "jna-platform")
   }
 
+  testImplementation(libs.mockito)
   testImplementation(libs.assertj.core)
   testImplementation(libs.bundles.junit.implementation)
   testRuntimeOnly(libs.bundles.junit.runtime)

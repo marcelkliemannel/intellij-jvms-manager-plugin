@@ -1,7 +1,7 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool
 
-import com.intellij.execution.process.ProcessAdapter
 import com.intellij.execution.process.ProcessEvent
+import com.intellij.execution.process.ProcessListener
 import com.intellij.icons.AllIcons
 import com.intellij.ide.BrowserUtil
 import com.intellij.notification.NotificationType
@@ -59,7 +59,7 @@ class ToFileJToolRunOption(
     return createJToolCommand.invoke(jvmActionContext)
   }
 
-  override fun getProcessAdapter(): ProcessAdapter? = processAdapter!!
+  override fun getProcessListener(): ProcessListener = processAdapter!!
 
   override fun onSuccess(jvmActionContext: JvmActionContext) {
     val exitCode = processAdapter!!.exitCode()
@@ -97,7 +97,7 @@ class ToFileJToolRunOption(
   // -- Private Methods ----------------------------------------------------- //
   // -- Inner Type ---------------------------------------------------------- //
 
-  private class OutputFileProcessAdapter(val outputFile: Path) : ProcessAdapter() {
+  private class OutputFileProcessAdapter(val outputFile: Path) : ProcessListener {
 
     private val outputStream: OutputStream by lazy { createOutputStream(outputFile) }
     private var exitCode = 0
