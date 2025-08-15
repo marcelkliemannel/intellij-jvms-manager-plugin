@@ -35,32 +35,31 @@ class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
   // -- Exported Methods ---------------------------------------------------- //
 
   override fun createComponent(project: Project, parent: Disposable) =
-      JPanel(GridBagLayout()).apply {
-        border = UiUtils.EMPTY_BORDER
+    JPanel(GridBagLayout()).apply {
+      border = UiUtils.EMPTY_BORDER
 
-        val bag = UiUtils.createDefaultGridBag()
+      val bag = UiUtils.createDefaultGridBag()
 
-        printAdditionalLocksInformation =
-            JBCheckBox("Print additional information about locks", true)
-        printAdditionalThreadsInformation =
-            JBCheckBox("Print additional information about threads", true)
-        add(
-            printAdditionalLocksInformation,
-            bag.nextLine().next().weightx(1.0).fillCellHorizontally(),
+      printAdditionalLocksInformation = JBCheckBox("Print additional information about locks", true)
+      printAdditionalThreadsInformation =
+        JBCheckBox("Print additional information about threads", true)
+      add(
+        printAdditionalLocksInformation,
+        bag.nextLine().next().weightx(1.0).fillCellHorizontally(),
+      )
+      add(
+        printAdditionalThreadsInformation,
+        bag.nextLine().next().weightx(1.0).fillCellHorizontally(),
+      )
+
+      val runButton =
+        AnActionOptionButton(
+          createOpenResultInThreadDumpAnalyzerRunOption(),
+          createOpenResultInPopupRunOption(),
+          createToFileJToolRunOption(),
         )
-        add(
-            printAdditionalThreadsInformation,
-            bag.nextLine().next().weightx(1.0).fillCellHorizontally(),
-        )
-
-        val runButton =
-            AnActionOptionButton(
-                createOpenResultInThreadDumpAnalyzerRunOption(),
-                createOpenResultInPopupRunOption(),
-                createToFileJToolRunOption(),
-            )
-        add(runButton, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP))
-      }
+      add(runButton, bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_HGAP))
+    }
 
   // -- Private Methods ----------------------------------------------------- //
 
@@ -73,23 +72,24 @@ class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
         val unscrambleClass = Class.forName(UNSCRAMBLE_CLASS)
 
         val parseMethod: Method =
-            parserClass.getMethod(PARSER_CLASS_PARSE_METHOD, String::class.java)
+          parserClass.getMethod(PARSER_CLASS_PARSE_METHOD, String::class.java)
         val threadStates = parseMethod.invoke(null, threadDump) as MutableList<*>?
 
         val addConsoleMethod: Method =
-            unscrambleClass.getMethod(
-                UNSCRAMBLE_CLASS_ADD_CONSOLE_METHOD,
-                Project::class.java,
-                MutableList::class.java,
-                String::class.java)
+          unscrambleClass.getMethod(
+            UNSCRAMBLE_CLASS_ADD_CONSOLE_METHOD,
+            Project::class.java,
+            MutableList::class.java,
+            String::class.java,
+          )
 
         addConsoleMethod.invoke(null, jvmActionContext.project, threadStates, threadDump)
       } catch (e: Exception) {
         LOG.warn("Failed to open IntelliJ's Thread Dump Analyzer", e)
         Messages.showErrorDialog(
-            jvmActionContext.project,
-            "Failed to open IntelliJ's Thread Dump Analyzer.\n\nSee idea.log for more details.",
-            "Run - Show In Thread Dump Analyzer",
+          jvmActionContext.project,
+          "Failed to open IntelliJ's Thread Dump Analyzer.\n\nSee idea.log for more details.",
+          "Run - Show In Thread Dump Analyzer",
         )
       }
     }
@@ -101,10 +101,11 @@ class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
 
         parserClass.getMethod(PARSER_CLASS_PARSE_METHOD, String::class.java)
         unscrambleClass.getMethod(
-            UNSCRAMBLE_CLASS_ADD_CONSOLE_METHOD,
-            Project::class.java,
-            MutableList::class.java,
-            String::class.java)
+          UNSCRAMBLE_CLASS_ADD_CONSOLE_METHOD,
+          Project::class.java,
+          MutableList::class.java,
+          String::class.java,
+        )
         true
       } catch (_: ClassNotFoundException) {
         false
@@ -114,11 +115,12 @@ class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
     }
 
     return ToStringJToolRunOption(
-        "Run - Show In Thread Dump Analyzer",
-        toTaskTitleFunction,
-        createJToolCommand,
-        onSuccess,
-        available = available)
+      "Run - Show In Thread Dump Analyzer",
+      toTaskTitleFunction,
+      createJToolCommand,
+      onSuccess,
+      available = available,
+    )
   }
 
   private fun createOpenResultInPopupRunOption(): AnAction {
@@ -127,10 +129,10 @@ class CreatingThreadDumpJvmAction : JvmAction("Thread Dump") {
       TextPopup.showCenteredInCurrentWindow(title, result, jvmActionContext.project, false)
     }
     return ToStringJToolRunOption(
-        "Run - Show Output",
-        toTaskTitleFunction,
-        createJToolCommand,
-        onSuccess,
+      "Run - Show Output",
+      toTaskTitleFunction,
+      createJToolCommand,
+      onSuccess,
     )
   }
 

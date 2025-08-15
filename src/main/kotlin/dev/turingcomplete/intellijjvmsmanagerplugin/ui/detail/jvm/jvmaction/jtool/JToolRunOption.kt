@@ -24,7 +24,7 @@ abstract class JToolRunOption(
   optionTitle: String,
   val taskTitle: (JvmActionContext) -> String,
   val icon: Icon = AllIcons.RunConfigurations.TestState.Run,
-  private val available: () -> Boolean = { true }
+  private val available: () -> Boolean = { true },
 ) : DumbAwareAction(optionTitle, null, icon) {
   // -- Companion Object ---------------------------------------------------- //
   // -- Properties ---------------------------------------------------------- //

@@ -11,12 +11,12 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.TextPopup
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionContext
 
 class ToStringJToolRunOption(
-    optionTitle: String,
-    taskTitle: (JvmActionContext) -> String,
-    private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
-    private val onSuccess: (String, JvmActionContext) -> Unit,
-    private val mayProduceHighMemoryResult: () -> Boolean = { false },
-    available: () -> Boolean = { true }
+  optionTitle: String,
+  taskTitle: (JvmActionContext) -> String,
+  private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
+  private val onSuccess: (String, JvmActionContext) -> Unit,
+  private val mayProduceHighMemoryResult: () -> Boolean = { false },
+  available: () -> Boolean = { true },
 ) : JToolRunOption(optionTitle, taskTitle, available = available) {
   // -- Companion Object ---------------------------------------------------- //
   // -- Properties ---------------------------------------------------------- //
@@ -29,15 +29,15 @@ class ToStringJToolRunOption(
   override fun beforeExecution(jvmActionContext: JvmActionContext): Boolean {
     if (mayProduceHighMemoryResult()) {
       val shouldContinue =
-          Messages.showYesNoDialog(
-              jvmActionContext.project,
-              "The output of the action may be too large to handle " +
-                  "in-memory and therefore could result in an \"Out Of Memory\" error " +
-                  "in IntelliJ. Consider using the \"${ToFileJToolRunOption.OPTION_TITLE}\" " +
-                  "option instead.\n\nShould the action be executed?",
-              taskTitle(jvmActionContext),
-              null,
-          )
+        Messages.showYesNoDialog(
+          jvmActionContext.project,
+          "The output of the action may be too large to handle " +
+            "in-memory and therefore could result in an \"Out Of Memory\" error " +
+            "in IntelliJ. Consider using the \"${ToFileJToolRunOption.OPTION_TITLE}\" " +
+            "option instead.\n\nShould the action be executed?",
+          taskTitle(jvmActionContext),
+          null,
+        )
       if (shouldContinue != Messages.YES) {
         return false
       }
@@ -63,11 +63,11 @@ class ToStringJToolRunOption(
     } else {
       val theTaskTitle = taskTitle(jvmActionContext)
       NotificationUtils.notifyBalloon(
-          "$theTaskTitle Failed",
-          "Command failed with exit code: $exitCode.",
-          jvmActionContext.project,
-          NotificationType.ERROR,
-          ShowProcessActionOutput(theTaskTitle, output, jvmActionContext),
+        "$theTaskTitle Failed",
+        "Command failed with exit code: $exitCode.",
+        jvmActionContext.project,
+        NotificationType.ERROR,
+        ShowProcessActionOutput(theTaskTitle, output, jvmActionContext),
       )
     }
   }
@@ -80,9 +80,9 @@ class ToStringJToolRunOption(
   // -- Inner Type ---------------------------------------------------------- //
 
   private class ShowProcessActionOutput(
-      val taskTitle: String,
-      val output: String,
-      val jvmActionContext: JvmActionContext,
+    val taskTitle: String,
+    val output: String,
+    val jvmActionContext: JvmActionContext,
   ) : DumbAwareAction("Show Process Output") {
 
     override fun actionPerformed(e: AnActionEvent) {
