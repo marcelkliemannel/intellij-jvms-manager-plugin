@@ -1,91 +1,166 @@
+
 import org.jetbrains.changelog.Changelog
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.INVALID_PLUGIN
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.NON_EXTENDABLE_API_USAGES
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 fun properties(key: String) = project.findProperty(key).toString()
 
 plugins {
   java
-  kotlin("jvm") version "1.9.0"
-  id("org.jetbrains.intellij") version "1.17.4"
-  id("org.jetbrains.changelog") version "2.2.1"
+  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.intellij.platform)
+  alias(libs.plugins.changelog)
+  alias(libs.plugins.version.catalog.update)
+  alias(libs.plugins.spotless)
 }
 
 group = properties("pluginGroup")
+
 version = properties("pluginVersion")
+
+val platform = properties("platform")
 
 repositories {
   mavenLocal()
   mavenCentral()
+
+  intellijPlatform { defaultRepositories() }
 }
 
-dependencies {
-  implementation("com.github.oshi:oshi-core:6.6.1") {
-    exclude(group = "org.slf4j", module = "slf4j-api")
-    exclude(group = "net.java.dev.jna", module = "jna")
-    exclude(group = "net.java.dev.jna", module = "jna-platform")
-  }
+spotless { kotlin { ktfmt().googleStyle() } }
 
-  testImplementation("org.mockito:mockito-core:5.12.0")
-  val jUnitVersion = "5.10.3"
-  testImplementation("org.junit.jupiter:junit-jupiter-params:$jUnitVersion")
-  testImplementation("org.junit.jupiter:junit-jupiter-api:$jUnitVersion")
-  testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jUnitVersion")
-  implementation(kotlin("stdlib-jdk8"))
-}
+java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
 
-tasks.withType<Test> {
-  useJUnitPlatform()
-}
-
-intellij {
-  version.set(properties("platformVersion"))
-  type.set(properties("platformType"))
-  downloadSources.set(properties("platformDownloadSources").toBoolean())
-  updateSinceUntilBuild.set(true)
-  plugins.set(properties("platformPlugins").split(',').map(String::trim).filter(String::isNotEmpty))
-}
-
-changelog {
-  val projectVersion = project.version as String
-  version.set(projectVersion)
-  header.set("[$projectVersion] - ${org.jetbrains.changelog.date()}")
-  groups.set(listOf("Added", "Changed", "Removed", "Fixed"))
+configurations.all {
+  exclude(group = "org.slf4j", module = "slf4j-api")
+  exclude(group = "org.slf4j", module = "slf4j-simple")
+  exclude(group = "org.slf4j", module = "slf4j-log4j12")
+  exclude(group = "org.slf4j", module = "slf4j-jdk14")
 }
 
 tasks {
-  patchPluginXml {
-    version.set(properties("pluginVersion"))
-    sinceBuild.set(properties("pluginSinceBuild"))
-    untilBuild.set(properties("pluginUntilBuild"))
-    changeNotes.set(provider { changelog.renderItem(changelog.get(project.version as String), Changelog.OutputType.HTML) })
-  }
-
-  runPluginVerifier {
-    ideVersions.set(properties("pluginVerifierIdeVersions").split(",").map(String::trim).filter(String::isNotEmpty))
-  }
-
-  publishPlugin {
-    dependsOn("patchChangelog")
-    token.set(project.provider { properties("jetbrains.marketplace.token") })
-    channels.set(listOf(properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
-  }
-
-  signPlugin {
-    val jetbrainsDir = File(System.getProperty("user.home"), ".jetbrains")
-    certificateChain.set(project.provider { File(jetbrainsDir, "plugin-sign-chain.crt").readText() })
-    privateKey.set(project.provider { File(jetbrainsDir, "plugin-sign-private-key.pem").readText() })
-
-    password.set(project.provider { properties("jetbrains.sign-plugin.password") })
-  }
-
   withType<KotlinCompile> {
-    kotlinOptions {
-      freeCompilerArgs = listOf("-Xjsr305=strict")
-      jvmTarget = "17"
+    compilerOptions {
+      freeCompilerArgs = listOf("-Xjsr305=strict", "-opt-in=kotlin.ExperimentalStdlibApi")
+      jvmTarget.set(JvmTarget.JVM_21)
     }
   }
 
   withType<Test> {
     useJUnitPlatform()
+    systemProperty("java.awt.headless", "false")
+  }
+
+  named("check") { dependsOn("spotlessCheck") }
+}
+
+dependencies {
+  intellijPlatform {
+    create(platform, properties("platformVersion")) {
+      useInstaller.set(false)
+    }
+    bundledPlugins(properties("platformGlobalBundledPlugins").split(','))
+
+    pluginVerifier()
+    zipSigner()
+
+    testFramework(TestFrameworkType.Platform)
+    testFramework(TestFrameworkType.JUnit5)
+  }
+
+  implementation(libs.oshi) {
+    exclude(group = "org.slf4j", module = "slf4j-api")
+    exclude(group = "net.java.dev.jna", module = "jna")
+    exclude(group = "net.java.dev.jna", module = "jna-platform")
+  }
+
+  testImplementation(libs.mockito)
+  testImplementation(libs.assertj.core)
+  testImplementation(libs.bundles.junit.implementation)
+  testRuntimeOnly(libs.bundles.junit.runtime)
+}
+
+intellijPlatform {
+  pluginConfiguration {
+    id = providers.gradleProperty("pluginId")
+    version = providers.gradleProperty("pluginVersion")
+    name = providers.gradleProperty("pluginName")
+
+    ideaVersion {
+      sinceBuild = properties("pluginSinceBuild")
+      untilBuild = provider { null }
+    }
+
+    changeNotes.set(
+        provider {
+          changelog.renderItem(
+              changelog.get(project.version as String),
+              Changelog.OutputType.HTML,
+          )
+        })
+  }
+
+  signing {
+    val jetbrainsDir = File(System.getProperty("user.home"), ".jetbrains")
+    certificateChain.set(
+        project.provider { File(jetbrainsDir, "plugin-sign-chain.crt").readText() })
+    privateKey.set(
+        project.provider { File(jetbrainsDir, "plugin-sign-private-key.pem").readText() })
+    password.set(project.provider { properties("jetbrains.sign-plugin.password") })
+  }
+
+  publishing {
+    token.set(project.provider { properties("jetbrains.marketplace.token") })
+    channels.set(
+        listOf(
+            properties("pluginVersion").split('-').getOrElse(1) { "default" }.split('.').first()))
+  }
+
+  pluginVerification {
+    failureLevel.set(
+        listOf(
+            COMPATIBILITY_PROBLEMS,
+            INTERNAL_API_USAGES,
+            NON_EXTENDABLE_API_USAGES,
+            OVERRIDE_ONLY_API_USAGES,
+            INVALID_PLUGIN,
+            // Will fail for non-IC IDEs
+            // MISSING_DEPENDENCIES
+        ))
+
+    ides { recommended() }
+  }
+}
+
+changelog {
+  val projectVersion = project.version as String
+  version.set(projectVersion)
+  header.set("$projectVersion - ${org.jetbrains.changelog.date()}")
+  groups.set(listOf("Added", "Changed", "Removed", "Fixed"))
+}
+
+tasks {
+  named("publishPlugin") {
+    dependsOn("check")
+
+    doFirst { check(platform == "IC") { "Expected platform 'IC', but was: '$platform'" } }
+  }
+
+  named("buildSearchableOptions") { enabled = false }
+}
+
+versionCatalogUpdate {
+  pin {
+    versions.set(
+        listOf(
+            // Must be updated in conjunction with the minimum platform version
+            // https://plugins.jetbrains.com/docs/intellij/using-kotlin.html#kotlin-standard-library
+            "kotlin"))
   }
 }

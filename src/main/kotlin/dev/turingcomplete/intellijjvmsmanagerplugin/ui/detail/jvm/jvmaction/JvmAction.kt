@@ -6,18 +6,19 @@ import com.intellij.openapi.project.Project
 import javax.swing.JComponent
 
 abstract class JvmAction(val title: String) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
-    val EP: ExtensionPointName<JvmAction> = ExtensionPointName.create("dev.turingcomplete.intellijjvmsmanagerplugin.jvmAction")
+    val EP: ExtensionPointName<JvmAction> =
+      ExtensionPointName.create("dev.turingcomplete.intellijjvmsmanagerplugin.jvmAction")
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   abstract fun createComponent(project: Project, parent: Disposable): JComponent
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

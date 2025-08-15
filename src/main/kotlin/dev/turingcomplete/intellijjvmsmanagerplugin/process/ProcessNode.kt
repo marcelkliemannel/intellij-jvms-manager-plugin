@@ -1,31 +1,33 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.process
 
 import com.intellij.openapi.application.ApplicationManager
+import javax.swing.tree.DefaultMutableTreeNode
 import oshi.PlatformEnum
 import oshi.software.os.OSProcess
-import javax.swing.tree.DefaultMutableTreeNode
 
 open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
-    private const val TERMINATION_TRIGGERED_WARNING_TEXT = "<html>Termination of this process was triggered.</html>"
+    private const val TERMINATION_TRIGGERED_WARNING_TEXT =
+      "<html>Termination of this process was triggered.</html>"
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   val processType: ProcessType by lazy { determineProcessType() }
   val smartName: String by lazy { determineSmartName() }
   var collectedAtMillis: Long = System.currentTimeMillis()
     private set
+
   var warningText: String? = null
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   protected open fun determineProcessType(): ProcessType = ProcessType.determine(process, null)
 
-  protected open fun determineSmartName() : String {
+  protected open fun determineSmartName(): String {
     val processName = process.name
     if (processName.isNotBlank()) {
       return processName
@@ -43,8 +45,10 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
 
   fun priorityDescription(): String? {
     return when (OshiUtils.CURRENT_PLATFORM) {
-      PlatformEnum.MACOS -> "Priority on macOS ranges from 0 (lowest) to 127 (highest).\nThe default priority is 31."
-      PlatformEnum.LINUX -> "Priority on Linux ranges from -20 (highest) to 19/20 (lowest).\nThe default priority is 0."
+      PlatformEnum.MACOS ->
+        "Priority on macOS ranges from 0 (lowest) to 127 (highest).\nThe default priority is 31."
+      PlatformEnum.LINUX ->
+        "Priority on Linux ranges from -20 (highest) to 19/20 (lowest).\nThe default priority is 0."
       PlatformEnum.WINDOWS -> "Priority on Windows ranges from 0 (lowest) to 32 (highest)."
       else -> null
     }
@@ -57,7 +61,7 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
       return true
     }
 
-    if (javaClass != other?.javaClass){
+    if (javaClass != other?.javaClass) {
       return false
     }
 
@@ -74,9 +78,9 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
 
     val attributesUpdated: Boolean = process.updateAttributes()
     if (!attributesUpdated) {
-      warningText = "<html>Failed to update process information.<br>The process was probably terminated.</html>"
-    }
-    else {
+      warningText =
+        "<html>Failed to update process information.<br>The process was probably terminated.</html>"
+    } else {
       warningText = null
       collectedAtMillis = System.currentTimeMillis()
     }
@@ -92,6 +96,6 @@ open class ProcessNode(val process: OSProcess) : DefaultMutableTreeNode() {
     warningText = TERMINATION_TRIGGERED_WARNING_TEXT
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

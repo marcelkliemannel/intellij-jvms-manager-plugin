@@ -6,22 +6,22 @@ import oshi.software.os.OSProcess
 import oshi.software.os.OperatingSystem
 
 object OshiUtils {
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   val OPERATION_SYSTEM: OperatingSystem by lazy { SystemInfo().operatingSystem }
   val CURRENT_PLATFORM: PlatformEnum by lazy { SystemInfo.getCurrentPlatform() }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun isPlatform(vararg platforms: PlatformEnum): Boolean = platforms.any { CURRENT_PLATFORM == it }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }
 
 fun OSProcess.State.stateDescription(): String {
-  return when(this) {
+  return when (this) {
     OSProcess.State.NEW -> "Process is in the creation phase"
     OSProcess.State.RUNNING -> "Process is in execution"
     OSProcess.State.SLEEPING -> "Process is in an interruptible sleep state"

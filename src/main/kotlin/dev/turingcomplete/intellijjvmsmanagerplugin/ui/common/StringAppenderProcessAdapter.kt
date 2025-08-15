@@ -5,14 +5,14 @@ import com.intellij.execution.process.ProcessEvent
 import com.intellij.openapi.util.Key
 
 class StringAppenderProcessAdapter : ProcessAdapter() {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val output = StringBuilder()
   private var exitCode = 0
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun onTextAvailable(event: ProcessEvent, outputType: Key<*>) {
     output.append(event.text)
@@ -26,6 +26,6 @@ class StringAppenderProcessAdapter : ProcessAdapter() {
 
   fun exitCode(): Int = exitCode
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

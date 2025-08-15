@@ -9,13 +9,14 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.JvmsManagerToolWindowFact
 
 @Service(Service.Level.PROJECT)
 class JvmsManagerPluginService(val project: Project) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun processDetailsUpdated(processNodes: List<ProcessNode>) {
-    JvmsManagerToolWindowFactory.getJvmProcessesMainPanel(project)?.processDetailsUpdated(processNodes)
+    JvmsManagerToolWindowFactory.getJvmProcessesMainPanel(project)
+      ?.processDetailsUpdated(processNodes)
   }
 
   fun showProcessDetails(processNode: ProcessNode) {
@@ -27,9 +28,10 @@ class JvmsManagerPluginService(val project: Project) {
   }
 
   fun showSettings() {
-    ShowSettingsUtil.getInstance().showSettingsDialog(project, JvmsManagerSettingsConfigurable::class.java)
+    ShowSettingsUtil.getInstance()
+      .showSettingsDialog(project, JvmsManagerSettingsConfigurable::class.java)
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

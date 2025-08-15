@@ -8,10 +8,12 @@ import com.intellij.openapi.projectRoots.Sdk
 import com.intellij.openapi.roots.ui.configuration.projectRoot.ProjectSdksModel
 import com.intellij.util.xmlb.XmlSerializerUtil
 
-@State(name = "dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsService",
-       storages = [Storage("JvmsManagerSettingsPlugin.xml")])
+@State(
+  name = "dev.turingcomplete.intellijjvmsmanagerplugin.settings.JvmsManagerSettingsService",
+  storages = [Storage("JvmsManagerSettingsPlugin.xml")],
+)
 class JvmsManagerSettingsService : PersistentStateComponent<JvmsManagerSettingsService> {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     fun getInstance(): JvmsManagerSettingsService {
@@ -19,12 +21,12 @@ class JvmsManagerSettingsService : PersistentStateComponent<JvmsManagerSettingsS
     }
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val sdksModel = ProjectSdksModel().apply { syncSdks() }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   var collectJvmProcessesOnToolWindowOpen: Boolean = true
   var jvmActionsJdkName: String? = null
@@ -41,6 +43,6 @@ class JvmsManagerSettingsService : PersistentStateComponent<JvmsManagerSettingsS
     XmlSerializerUtil.copyBean(state, this)
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

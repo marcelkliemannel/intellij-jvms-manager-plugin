@@ -11,21 +11,21 @@ import java.awt.event.ActionEvent
 import javax.swing.AbstractAction
 import javax.swing.JComponent
 
-class AnActionOptionButton(mainAction: AnAction, vararg additionalActions: AnAction)
-  : JBOptionButton(null, null) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
+class AnActionOptionButton(mainAction: AnAction, vararg additionalActions: AnAction) :
+  JBOptionButton(null, null) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
 
   init {
     action = AnActionWrapper(mainAction, this)
     options = additionalActions.map { AnActionWrapper(it, this) }.toTypedArray()
   }
 
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Exported Methods ---------------------------------------------------- //
 
-  private class AnActionWrapper(private val action: AnAction, private val component: JComponent)
-    : AbstractAction(action.templatePresentation.text, action.templatePresentation.icon) {
+  private class AnActionWrapper(private val action: AnAction, private val component: JComponent) :
+    AbstractAction(action.templatePresentation.text, action.templatePresentation.icon) {
 
     init {
       putValue(OptionAction.AN_ACTION, action)
@@ -33,11 +33,17 @@ class AnActionOptionButton(mainAction: AnAction, vararg additionalActions: AnAct
 
     override fun actionPerformed(e: ActionEvent?) {
       val context = DataManager.getInstance().getDataContext(component)
-      val event = AnActionEvent.createFromAnAction(action, null, "${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.jvmaction", context)
+      val event =
+        AnActionEvent.createFromAnAction(
+          action,
+          null,
+          "${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.jvmaction",
+          context,
+        )
       ActionUtil.performActionDumbAwareWithCallbacks(action, event)
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

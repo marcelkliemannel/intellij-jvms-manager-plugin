@@ -20,18 +20,21 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.NotificationUtils
 import java.util.concurrent.TimeUnit
 import javax.swing.Icon
 
-abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private val collectJavaProcessesOnSuccess: Boolean)
-  : DumbAwareAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess), DumbAware {
+abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(
+  private val collectJavaProcessesOnSuccess: Boolean
+) :
+  DumbAwareAction("Terminate Processes", "Terminate processes", AllIcons.Debugger.KillProcess),
+  DumbAware {
 
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private val LOG = Logger.getInstance(TerminateProcessesAction::class.java)
   }
 
-  // -- Variables --------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exported Methods -------------------------------------------------------------------------------------------- //
+  // -- Variables ----------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   final override fun update(e: AnActionEvent) {
     super.update(e)
@@ -41,12 +44,15 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
   }
 
   final override fun actionPerformed(e: AnActionEvent) {
-    TerminateProcessesTask(e.project, createTitle(e.dataContext),
-                           getProcessNodes(e.dataContext),
-                           collectJavaProcessesOnSuccess,
-                           { processNode, progressIndicator -> terminate(processNode, progressIndicator) },
-                           { processNode, error -> createErrorMessage(processNode, error) })
-            .queue()
+    TerminateProcessesTask(
+        e.project,
+        createTitle(e.dataContext),
+        getProcessNodes(e.dataContext),
+        collectJavaProcessesOnSuccess,
+        { processNode, progressIndicator -> terminate(processNode, progressIndicator) },
+        { processNode, error -> createErrorMessage(processNode, error) },
+      )
+      .queue()
   }
 
   abstract fun createTitle(dataContext: DataContext): String
@@ -63,17 +69,17 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
 
   final override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  private class TerminateProcessesTask(project: Project?,
-                                       title: String,
-                                       val processNodes: List<ProcessNode>,
-                                       val collectJavaProcessesOnSuccess: Boolean,
-                                       val terminateProcess: (ProcessNode, ProgressIndicator) -> Unit,
-                                       val createErrorMessage: (ProcessNode, Throwable) -> String)
-
-    : Task.ConditionalModal(project, title, true, ALWAYS_BACKGROUND) {
+  private class TerminateProcessesTask(
+    project: Project?,
+    title: String,
+    val processNodes: List<ProcessNode>,
+    val collectJavaProcessesOnSuccess: Boolean,
+    val terminateProcess: (ProcessNode, ProgressIndicator) -> Unit,
+    val createErrorMessage: (ProcessNode, Throwable) -> String,
+  ) : Task.ConditionalModal(project, title, true, ALWAYS_BACKGROUND) {
 
     private val deferredFailures = mutableListOf<String>()
 
@@ -81,8 +87,7 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
       processNodes.forEach { processNode ->
         try {
           terminateProcess(processNode, progressIndicator)
-        }
-        catch (e: Exception) {
+        } catch (e: Exception) {
           deferredFailures.add(createErrorMessage(processNode, e))
         }
       }
@@ -92,16 +97,19 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
       if (collectJavaProcessesOnSuccess) {
         // Wait a second to give the process time to terminate
         AppExecutorUtil.getAppScheduledExecutorService()
-                .schedule({ project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses() },
-                          1, TimeUnit.SECONDS)
+          .schedule(
+            { project.getService(JvmsManagerPluginService::class.java).collectJavaProcesses() },
+            1,
+            TimeUnit.SECONDS,
+          )
       }
 
-      val message = if (processNodes.size > 1) {
-        "Termination of the processes with PIDs ${processNodes.joinToString { it.process.processID.toString() }} was triggered."
-      }
-      else {
-        "Termination of process with PID ${processNodes[0].process.processID} was triggered."
-      }
+      val message =
+        if (processNodes.size > 1) {
+          "Termination of the processes with PIDs ${processNodes.joinToString { it.process.processID.toString() }} was triggered."
+        } else {
+          "Termination of process with PID ${processNodes[0].process.processID} was triggered."
+        }
       NotificationUtils.notifyOnToolWindow(message, project)
 
       project.getService(JvmsManagerPluginService::class.java).processDetailsUpdated(processNodes)
@@ -110,16 +118,22 @@ abstract class TerminateProcessesAction<T : TerminateProcessesAction<T>>(private
     override fun onThrowable(error: Throwable) {
       LOG.warn("Failed to execute process termination task.", error)
       ApplicationManager.getApplication().invokeLater {
-        Messages.showErrorDialog(project,
-                                 "Failed to execute process termination task: ${error.message}\nSee idea.log for more details.",
-                                 "Terminate Processes Failed")
+        Messages.showErrorDialog(
+          project,
+          "Failed to execute process termination task: ${error.message}\nSee idea.log for more details.",
+          "Terminate Processes Failed",
+        )
       }
     }
 
     override fun onFinished() {
       if (deferredFailures.isNotEmpty()) {
         ApplicationManager.getApplication().invokeLater {
-          Messages.showErrorDialog(project, deferredFailures.joinToString("\n\n"), "Terminate Processes Failed")
+          Messages.showErrorDialog(
+            project,
+            deferredFailures.joinToString("\n\n"),
+            "Terminate Processes Failed",
+          )
         }
       }
     }

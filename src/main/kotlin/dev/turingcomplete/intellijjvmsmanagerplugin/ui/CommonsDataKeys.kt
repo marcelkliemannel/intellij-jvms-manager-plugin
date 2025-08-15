@@ -7,48 +7,55 @@ import com.intellij.openapi.actionSystem.DataProvider
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 
 object CommonsDataKeys {
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
-  val SELECTED_PROCESSES_DATA_KEY: DataKey<List<ProcessNode>> = DataKey.create("JavaProcessesPlugin.SelectedProcesses")
-
-  /**
-   * The data key is also hard coded for the [CurrentProcessDetailsDataRule] in
-   * the `plugin.xml`.
-   */
-  val CURRENT_PROCESS_DETAILS_DATA_KEY: DataKey<ProcessNode> = DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.currentProcessDetails")
+  val SELECTED_PROCESSES_DATA_KEY: DataKey<List<ProcessNode>> =
+    DataKey.create("JavaProcessesPlugin.SelectedProcesses")
 
   /**
-   * The data key is also hard coded for the
-   * [CollectJvmProcessNodesTaskRunningDataRule] in the `plugin.xml`.
+   * The data key is also hard coded for the [CurrentProcessDetailsDataRule] in the `plugin.xml`.
    */
-  val COLLECT_JVM_PROCESS_NODES_TASK_RUNNING: DataKey<Boolean> = DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.collectJvmProcessNodesTaskRunning")
+  val CURRENT_PROCESS_DETAILS_DATA_KEY: DataKey<ProcessNode> =
+    DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.currentProcessDetails")
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  /**
+   * The data key is also hard coded for the [CollectJvmProcessNodesTaskRunningDataRule] in the
+   * `plugin.xml`.
+   */
+  val COLLECT_JVM_PROCESS_NODES_TASK_RUNNING: DataKey<Boolean> =
+    DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.collectJvmProcessNodesTaskRunning")
+
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun <T> getRequiredData(dataKey: DataKey<T>, dataContext: DataContext): T {
     return dataContext.getData(dataKey)
-           ?: throw IllegalStateException("snh: Data context is missing required data for key: ${dataKey.name}")
+      ?: throw IllegalStateException(
+        "snh: Data context is missing required data for key: ${dataKey.name}"
+      )
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   class CurrentProcessDetailsDataRule : GetDataRule {
 
     override fun getData(dataProvider: DataProvider): Any? {
       return CURRENT_PROCESS_DETAILS_DATA_KEY.getData(dataProvider)
-             ?: JvmsManagerToolWindowFactory.getData(dataProvider, CURRENT_PROCESS_DETAILS_DATA_KEY)
+        ?: JvmsManagerToolWindowFactory.getData(dataProvider, CURRENT_PROCESS_DETAILS_DATA_KEY)
     }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
   class CollectJvmProcessNodesTaskRunningDataRule : GetDataRule {
 
     override fun getData(dataProvider: DataProvider): Any? {
       return COLLECT_JVM_PROCESS_NODES_TASK_RUNNING.getData(dataProvider)
-             ?: JvmsManagerToolWindowFactory.getData(dataProvider, COLLECT_JVM_PROCESS_NODES_TASK_RUNNING)
+        ?: JvmsManagerToolWindowFactory.getData(
+          dataProvider,
+          COLLECT_JVM_PROCESS_NODES_TASK_RUNNING,
+        )
     }
   }
 }

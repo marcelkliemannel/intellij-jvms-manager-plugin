@@ -20,29 +20,33 @@ import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import javax.swing.JComponent
 
-class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescriptionPanel>(GridBagLayout()) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+class ProcessDescriptionPanel(val project: Project) :
+  JBPanel<ProcessDescriptionPanel>(GridBagLayout()) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private val processDescriptionLabel = JBLabel()
   private var warningLabelShown = false
-  private val warningLabelBag : GridBag
+  private val warningLabelBag: GridBag
   private val warningLabel = JBLabel(AllIcons.General.Warning)
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
 
   init {
     val bag = UiUtils.createDefaultGridBag()
 
     border = UiUtils.EMPTY_BORDER
 
-    add(processDescriptionLabel, bag.nextLine().next().fillCellHorizontally().anchor(GridBagConstraints.EAST).weightx(1.0))
+    add(
+      processDescriptionLabel,
+      bag.nextLine().next().fillCellHorizontally().anchor(GridBagConstraints.EAST).weightx(1.0),
+    )
     add(createProcessToolbar(this), bag.next().overrideLeftInset(UIUtil.DEFAULT_HGAP))
 
     warningLabelBag = bag.nextLine().next().overrideTopInset(UIUtil.DEFAULT_VGAP / 2).coverLine()
   }
 
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun processNodeUpdated(processNode: ProcessNode) {
     processDescriptionLabel.text = "<html><b>${processNode.processDescription()}</b></html>"
@@ -56,31 +60,35 @@ class ProcessDescriptionPanel(val project: Project) : JBPanel<ProcessDescription
         add(warningLabel, warningLabelBag)
         warningLabelShown = true
       }
-    }
-    else if (warningLabelShown) {
+    } else if (warningLabelShown) {
       remove(warningLabel)
       warningLabelShown = false
     }
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun createProcessToolbar(parent: JComponent): JComponent {
-    val processToolsGroup = DefaultActionGroup("Process Actions", true).apply {
-      templatePresentation.icon = AllIcons.General.GearPlain
+    val processToolsGroup =
+      DefaultActionGroup("Process Actions", true).apply {
+        templatePresentation.icon = AllIcons.General.GearPlain
 
-      add(GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess = false))
-      add(ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess = false))
-    }
+        add(GracefullyTerminateProcessesAction(collectJavaProcessesOnSuccess = false))
+        add(ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess = false))
+      }
     val topActionGroup = DefaultActionGroup(processToolsGroup, RefreshProcessInformationAction())
 
-    val myToolbar = ActionManager.getInstance().createActionToolbar("${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.toolbar.processDetails", topActionGroup, true)
+    val myToolbar =
+      ActionManager.getInstance()
+        .createActionToolbar(
+          "${JvmsManagerToolWindowFactory.TOOLBAR_PLACE_PREFIX}.toolbar.processDetails",
+          topActionGroup,
+          true,
+        )
     myToolbar.targetComponent = parent
 
-    return myToolbar.component.apply {
-      border = null
-    }
+    return myToolbar.component.apply { border = null }
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

@@ -15,28 +15,31 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.CommonsDataKeys.SELECTED_
 import javax.swing.JComponent
 import kotlin.properties.Delegates
 
-open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
-                                               protected val showParentProcessDetails: (ProcessNode) -> Unit,
-                                               initialProcessNode: T,
-                                               protected val parent: Disposable) : DataProvider {
+open class ProcessNodeDetails<T : ProcessNode>(
+  protected val project: Project,
+  protected val showParentProcessDetails: (ProcessNode) -> Unit,
+  initialProcessNode: T,
+  protected val parent: Disposable,
+) : DataProvider {
 
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
-  var processNode: T by Delegates.observable(initialProcessNode) { _, old, new ->
-    if (old != new) {
-      tabs.forEach { it.processNode = processNode }
-      tabbedPane.selectedIndex = 0
-      (tabbedPane.selectedComponent as? JBScrollPane)?.verticalScrollBar?.value = 0
+  var processNode: T by
+    Delegates.observable(initialProcessNode) { _, old, new ->
+      if (old != new) {
+        tabs.forEach { it.processNode = processNode }
+        tabbedPane.selectedIndex = 0
+        (tabbedPane.selectedComponent as? JBScrollPane)?.verticalScrollBar?.value = 0
+      }
     }
-  }
 
   private val tabbedPane = JBTabbedPane()
   private val tabs: List<DetailTab<T>> by lazy { createTabs() }
   val component: JComponent by lazy { createComponent(parent) }
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   protected open fun createTabs(): List<DetailTab<T>> {
     return listOf(ProcessTab(project, showParentProcessDetails, processNode))
@@ -54,29 +57,33 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
     component.isEnabled = enabled
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun createComponent(parent: Disposable): JComponent {
-    return object: BorderLayoutPanel(), DataProvider {
+    return object : BorderLayoutPanel(), DataProvider {
 
       init {
-        addToCenter(tabbedPane.apply {
-          tabComponentInsets = emptyInsets()
+        addToCenter(
+          tabbedPane.apply {
+            tabComponentInsets = emptyInsets()
 
-          tabs.forEach {
-            val tabComponent = it.createComponent(parent).apply {
-              UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
-              UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
+            tabs.forEach {
+              val tabComponent =
+                it.createComponent(parent).apply {
+                  UIUtil.setBackgroundRecursively(this, UIUtil.getTreeBackground())
+                  UIUtil.setForegroundRecursively(this, UIUtil.getTreeForeground())
+                }
+              addTab(it.title, null, createScrollPane(tabComponent, true))
             }
-            addTab(it.title, null, createScrollPane(tabComponent, true))
           }
-        })
+        )
       }
 
-      override fun getData(dataId: String): Any? = when {
-        CURRENT_PROCESS_DETAILS_DATA_KEY.`is`(dataId) -> processNode
-        else -> null
-      }
+      override fun getData(dataId: String): Any? =
+        when {
+          CURRENT_PROCESS_DETAILS_DATA_KEY.`is`(dataId) -> processNode
+          else -> null
+        }
     }
   }
 
@@ -84,5 +91,5 @@ open class ProcessNodeDetails<T : ProcessNode>(protected val project: Project,
     tabs[tabbedPane.selectedIndex].processNodeUpdated()
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

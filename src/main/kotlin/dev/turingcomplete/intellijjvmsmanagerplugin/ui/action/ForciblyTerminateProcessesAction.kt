@@ -7,17 +7,17 @@ import com.intellij.openapi.progress.ProgressIndicator
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 import javax.swing.Icon
 
-class ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
-  : TerminateProcessesAction<ForciblyTerminateProcessesAction>(collectJavaProcessesOnSuccess) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+class ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean) :
+  TerminateProcessesAction<ForciblyTerminateProcessesAction>(collectJavaProcessesOnSuccess) {
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
     private val LOG = Logger.getInstance(GracefullyTerminateProcessesAction::class.java)
   }
 
-  // -- Variables --------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exported Methods -------------------------------------------------------------------------------------------- //
+  // -- Variables ----------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun icon(): Icon = AllIcons.Debugger.KillProcess
 
@@ -27,7 +27,8 @@ class ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
 
   override fun createTitle(dataContext: DataContext): String {
     val numOfProcesses = getProcessNodes(dataContext).size
-    return if (numOfProcesses == 1) "Forcibly Terminate Process" else "Forcibly Terminate $numOfProcesses Processes"
+    return if (numOfProcesses == 1) "Forcibly Terminate Process"
+    else "Forcibly Terminate $numOfProcesses Processes"
   }
 
   override fun terminate(processNode: ProcessNode, progressIndicator: ProgressIndicator) {
@@ -38,6 +39,6 @@ class ForciblyTerminateProcessesAction(collectJavaProcessesOnSuccess: Boolean)
     processNode.terminateForcibly()
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

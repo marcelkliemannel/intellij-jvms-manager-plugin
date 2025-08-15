@@ -1,6 +1,6 @@
 package dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.jtool
 
-import com.intellij.execution.process.ProcessAdapter
+import com.intellij.execution.process.ProcessListener
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAwareAction
@@ -10,29 +10,34 @@ import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.StringAppenderProc
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.common.TextPopup
 import dev.turingcomplete.intellijjvmsmanagerplugin.ui.detail.jvm.jvmaction.JvmActionContext
 
-class ToStringJToolRunOption(optionTitle: String,
-                             taskTitle: (JvmActionContext) -> String,
-                             private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
-                             private val onSuccess: (String, JvmActionContext) -> Unit,
-                             private val mayProduceHighMemoryResult: () -> Boolean = { false })
-  : JToolRunOption(optionTitle, taskTitle) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+class ToStringJToolRunOption(
+  optionTitle: String,
+  taskTitle: (JvmActionContext) -> String,
+  private val createJToolCommand: (JvmActionContext) -> Pair<JTool, List<String>>,
+  private val onSuccess: (String, JvmActionContext) -> Unit,
+  private val mayProduceHighMemoryResult: () -> Boolean = { false },
+  available: () -> Boolean = { true },
+) : JToolRunOption(optionTitle, taskTitle, available = available) {
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
   private var processAdapter: StringAppenderProcessAdapter? = null
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   override fun beforeExecution(jvmActionContext: JvmActionContext): Boolean {
     if (mayProduceHighMemoryResult()) {
-      val shouldContinue = Messages.showYesNoDialog(jvmActionContext.project,
-                                                    "The output of the action may be too large to handle " +
-                                                    "in-memory and therefore could result in an \"Out Of Memory\" error " +
-                                                    "in IntelliJ. Consider using the \"${ToFileJToolRunOption.OPTION_TITLE}\" " +
-                                                    "option instead.\n\nShould the action be executed?",
-                                                    taskTitle(jvmActionContext),
-                                                    null)
+      val shouldContinue =
+        Messages.showYesNoDialog(
+          jvmActionContext.project,
+          "The output of the action may be too large to handle " +
+            "in-memory and therefore could result in an \"Out Of Memory\" error " +
+            "in IntelliJ. Consider using the \"${ToFileJToolRunOption.OPTION_TITLE}\" " +
+            "option instead.\n\nShould the action be executed?",
+          taskTitle(jvmActionContext),
+          null,
+        )
       if (shouldContinue != Messages.YES) {
         return false
       }
@@ -47,7 +52,7 @@ class ToStringJToolRunOption(optionTitle: String,
     return createJToolCommand.invoke(jvmActionContext)
   }
 
-  override fun getProcessAdapter(): ProcessAdapter? = processAdapter!!
+  override fun getProcessListener(): ProcessListener = processAdapter!!
 
   override fun onSuccess(jvmActionContext: JvmActionContext) {
     val exitCode = processAdapter!!.exitCode()
@@ -55,14 +60,15 @@ class ToStringJToolRunOption(optionTitle: String,
 
     if (exitCode == 0) {
       onSuccess(output, jvmActionContext)
-    }
-    else {
+    } else {
       val theTaskTitle = taskTitle(jvmActionContext)
-      NotificationUtils.notifyBalloon("$theTaskTitle Failed",
-                                      "Command failed with exit code: $exitCode.",
-                                      jvmActionContext.project,
-                                      NotificationType.ERROR,
-                                      ShowProcessActionOutput(theTaskTitle, output, jvmActionContext))
+      NotificationUtils.notifyBalloon(
+        "$theTaskTitle Failed",
+        "Command failed with exit code: $exitCode.",
+        jvmActionContext.project,
+        NotificationType.ERROR,
+        ShowProcessActionOutput(theTaskTitle, output, jvmActionContext),
+      )
     }
   }
 
@@ -70,13 +76,14 @@ class ToStringJToolRunOption(optionTitle: String,
     processAdapter = null
   }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 
-  private class ShowProcessActionOutput(val taskTitle: String,
-                                        val output: String,
-                                        val jvmActionContext: JvmActionContext)
-    : DumbAwareAction("Show Process Output") {
+  private class ShowProcessActionOutput(
+    val taskTitle: String,
+    val output: String,
+    val jvmActionContext: JvmActionContext,
+  ) : DumbAwareAction("Show Process Output") {
 
     override fun actionPerformed(e: AnActionEvent) {
       val title = "Output of '$taskTitle'"

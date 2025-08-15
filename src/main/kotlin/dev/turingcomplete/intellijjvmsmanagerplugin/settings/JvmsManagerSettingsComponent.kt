@@ -12,25 +12,40 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 internal class JvmsManagerSettingsComponent {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
 
-  private val jvmActionsJdkComboBox = JdkComboBox(null, JvmsManagerSettingsService.getInstance().getSdksModel(),
-                                                  { it is JavaSdkType }, null, null, null)
-  private val collectJvmProcessesOnToolWindowOpen = JBCheckBox("Collect JVM processes when the tool window gets opened")
+  private val jvmActionsJdkComboBox =
+    JdkComboBox(
+      null,
+      JvmsManagerSettingsService.getInstance().getSdksModel(),
+      { it is JavaSdkType },
+      null,
+      null,
+      null,
+    )
+  private val collectJvmProcessesOnToolWindowOpen =
+    JBCheckBox("Collect JVM processes when the tool window gets opened")
 
-  private var mainPanel: JPanel = FormBuilder.createFormBuilder()
-          .addLabeledComponent(JBLabel("JDK used for JVM actions: "), jvmActionsJdkComboBox, 1, true)
-          .addComponent(JBLabel("<html>Some of the JVM action will use the executables from the <code>bin</code> " +
-                                "directory of the selected JDK.<br>The availability of the actions depends on the " +
-                                "JDK's version and its vendor.</html>", UIUtil.ComponentStyle.SMALL), 0)
-          .addSeparator(UIUtil.LARGE_VGAP)
-          .addComponent(collectJvmProcessesOnToolWindowOpen, UIUtil.LARGE_VGAP)
-          .addComponentFillVertically(UiUtils.EMPTY_FILL_PANEL(), 0)
-          .panel
+  private var mainPanel: JPanel =
+    FormBuilder.createFormBuilder()
+      .addLabeledComponent(JBLabel("JDK used for JVM actions: "), jvmActionsJdkComboBox, 1, true)
+      .addComponent(
+        JBLabel(
+          "<html>Some of the JVM action will use the executables from the <code>bin</code> " +
+            "directory of the selected JDK.<br>The availability of the actions depends on the " +
+            "JDK's version and its vendor.</html>",
+          UIUtil.ComponentStyle.SMALL,
+        ),
+        0,
+      )
+      .addSeparator(UIUtil.LARGE_VGAP)
+      .addComponent(collectJvmProcessesOnToolWindowOpen, UIUtil.LARGE_VGAP)
+      .addComponentFillVertically(UiUtils.EMPTY_FILL_PANEL(), 0)
+      .panel
 
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
   fun getPanel(): JPanel = mainPanel
 
@@ -42,11 +57,11 @@ internal class JvmsManagerSettingsComponent {
       return
     }
 
-    val selectedModuleJdk: Sdk? = JvmsManagerSettingsService.getInstance().getSdksModel().findSdk(jdkName)
+    val selectedModuleJdk: Sdk? =
+      JvmsManagerSettingsService.getInstance().getSdksModel().findSdk(jdkName)
     if (selectedModuleJdk != null) {
       jvmActionsJdkComboBox.selectedJdk = selectedModuleJdk
-    }
-    else {
+    } else {
       jvmActionsJdkComboBox.setInvalidJdk(jdkName)
     }
   }
@@ -57,8 +72,9 @@ internal class JvmsManagerSettingsComponent {
     collectJvmProcessesOnToolWindowOpen.isSelected = state
   }
 
-  fun getCollectJvmProcessesOnToolWindowOpen(): Boolean = collectJvmProcessesOnToolWindowOpen.isSelected
+  fun getCollectJvmProcessesOnToolWindowOpen(): Boolean =
+    collectJvmProcessesOnToolWindowOpen.isSelected
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

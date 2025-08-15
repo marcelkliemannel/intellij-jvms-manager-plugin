@@ -5,15 +5,16 @@ import com.intellij.openapi.project.Project
 import dev.turingcomplete.intellijjvmsmanagerplugin.process.ProcessNode
 
 class JvmActionContext(val project: Project, val processNode: ProcessNode) {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
 
   companion object {
-    val DATA_KEY: DataKey<JvmActionContext> = DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.jvmActionContext")
+    val DATA_KEY: DataKey<JvmActionContext> =
+      DataKey.create("dev.turingcomplete.intellijjvmsmanagerplugin.jvmActionContext")
   }
 
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }

@@ -17,40 +17,52 @@ import java.awt.GridBagLayout
 import javax.swing.JPanel
 
 class RunGarbageCollectorAction : JvmAction("Garbage Collector") {
-  // -- Companion Object -------------------------------------------------------------------------------------------- //
-  // -- Properties -------------------------------------------------------------------------------------------------- //
-  // -- Initialization ---------------------------------------------------------------------------------------------- //
-  // -- Exposed Methods --------------------------------------------------------------------------------------------- //
+  // -- Companion Object ---------------------------------------------------- //
+  // -- Properties ---------------------------------------------------------- //
+  // -- Initialization ------------------------------------------------------ //
+  // -- Exported Methods ---------------------------------------------------- //
 
-  override fun createComponent(project: Project, parent: Disposable) = JPanel(GridBagLayout()).apply {
-    border = UiUtils.EMPTY_BORDER
+  override fun createComponent(project: Project, parent: Disposable) =
+    JPanel(GridBagLayout()).apply {
+      border = UiUtils.EMPTY_BORDER
 
-    val bag = UiUtils.createDefaultGridBag()
+      val bag = UiUtils.createDefaultGridBag()
 
-    add(AnActionOptionButton(createRunGarbageCollectionRunOption()), bag.nextLine().next())
-    add(UiUtils.createContextHelpLabel("Medium performance impact on the JVM."), bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2))
+      add(AnActionOptionButton(createRunGarbageCollectionRunOption()), bag.nextLine().next())
+      add(
+        UiUtils.createContextHelpLabel("Medium performance impact on the JVM."),
+        bag.next().anchor(GridBagConstraints.WEST).overrideLeftInset(UIUtil.DEFAULT_HGAP / 2),
+      )
 
-    // Stretch panel horizontally
-    add(UiUtils.EMPTY_FILL_PANEL(), bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally())
-  }
+      // Stretch panel horizontally
+      add(
+        UiUtils.EMPTY_FILL_PANEL(),
+        bag.nextLine().next().coverLine().weightx(1.0).fillCellHorizontally(),
+      )
+    }
 
-  // -- Private Methods --------------------------------------------------------------------------------------------- //
+  // -- Private Methods ----------------------------------------------------- //
 
   private fun createRunGarbageCollectionRunOption(): AnAction {
     val onSuccess: (String, JvmActionContext) -> Unit = { _, jvmActionContext ->
-      NotificationUtils.notifyBalloon("Run Garbage Collection",
-                                      "Garbage collection triggered on PID ${jvmActionContext.processNode.process.processID}.",
-                                      jvmActionContext.project,
-                                      NotificationType.INFORMATION,
-                                      RefreshProcessInformationAction(false))
+      NotificationUtils.notifyBalloon(
+        "Run Garbage Collection",
+        "Garbage collection triggered on PID ${jvmActionContext.processNode.process.processID}.",
+        jvmActionContext.project,
+        NotificationType.INFORMATION,
+        RefreshProcessInformationAction(false),
+      )
     }
     val commandLine: (JvmActionContext) -> Pair<JTool, List<String>> = {
       Pair(JTool.JCMD, listOf(it.processNode.process.processID.toString(), "GC.run"))
     }
-    return ToStringJToolRunOption("Run Garbage Collection",
-                                  { "Triggering Garbage Collection on PID ${it.processNode.process.processID}" },
-                                  commandLine, onSuccess)
+    return ToStringJToolRunOption(
+      "Run Garbage Collection",
+      { "Triggering Garbage Collection on PID ${it.processNode.process.processID}" },
+      commandLine,
+      onSuccess,
+    )
   }
 
-  // -- Inner Type -------------------------------------------------------------------------------------------------- //
+  // -- Inner Type ---------------------------------------------------------- //
 }
