@@ -1,3 +1,4 @@
+
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS
@@ -32,16 +33,6 @@ repositories {
   intellijPlatform { defaultRepositories() }
 }
 
-dependencies {
-  intellijPlatform {
-    create(platform, properties("platformVersion")) { useInstaller.set(false) }
-    bundledPlugins(properties("platformGlobalBundledPlugins").split(','))
-
-    testFramework(TestFrameworkType.Platform)
-    testFramework(TestFrameworkType.JUnit5)
-  }
-}
-
 spotless { kotlin { ktfmt().googleStyle() } }
 
 java { toolchain { languageVersion.set(JavaLanguageVersion.of(21)) } }
@@ -71,8 +62,16 @@ tasks {
 
 dependencies {
   intellijPlatform {
+    create(platform, properties("platformVersion")) {
+      useInstaller.set(false)
+    }
+    bundledPlugins(properties("platformGlobalBundledPlugins").split(','))
+
     pluginVerifier()
     zipSigner()
+
+    testFramework(TestFrameworkType.Platform)
+    testFramework(TestFrameworkType.JUnit5)
   }
 
   implementation(libs.oshi) {
